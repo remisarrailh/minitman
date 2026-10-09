@@ -221,10 +221,19 @@
     }
    }
   }
+  clearMineFromTeleport(m){
+   const zones=this.customZones?.teleports||[{x:414,y:62,w:28,h:1},{x:506,y:75,w:28,h:1},{x:414,y:88,w:28,h:1},{x:661,y:101,w:28,h:1},{x:414,y:114,w:28,h:1},{x:661,y:127,w:28,h:14}];
+   const nearby=zones.filter(z=>m.y>=z.y-1&&m.y-1<=z.y+z.h+1);
+   const blocked=x=>nearby.some(z=>x+3>z.x-8&&x<z.x+z.w+8);
+   if(!blocked(m.x))return;
+   const candidates=nearby.flatMap(z=>[z.x-11,z.x+z.w+8]).filter(x=>x>=0&&x<=837&&!blocked(x)&&(!this.customZones||this.customZones.collisions.some(z=>x+3>z.x&&x<z.x+z.w&&Math.abs(z.y-m.y)<=1)));
+   candidates.sort((a,b)=>Math.abs(a-m.x)-Math.abs(b-m.x));
+   if(candidates.length)m.x=candidates[0];
+  }
   destroyEnemy(e,dropMine=false){
    const inBase=['walking','descending','inside'].includes(e.phase)||e.action===undefined&&e.y>=45;
    this.explosions.push({x:e.x,y:e.y,age:0});
-   if(dropMine&&inBase)this.mines.push({x:e.x,y:e.y+14});
+   if(dropMine&&inBase){const mine={x:e.x,y:e.y+14};this.clearMineFromTeleport(mine);this.mines.push(mine);}
    this.enemies=this.enemies.filter(other=>other!==e);
   }
   hurtPlayer(){
@@ -266,7 +275,19 @@
     if(this.pilot&&overlap(box,{x:this.pilot.x+3,y:this.pilot.y+4,w:10,h:10})){this.lives++;this.notice='Bonus : une vie gagnée';return false;}
     const enemy=this.enemies.find(e=>overlap(box,{x:e.x+2,y:e.y+4,w:11,h:11}));if(enemy){enemy.canShoot=false;return false;}return true;
    });
-   this.mines=this.mines.filter(m=>{if(this.pilot&&this.pilot.vy===0&&overlap({x:m.x,y:m.y-1,w:3,h:1},{x:this.pilot.x+3,y:this.pilot.y+4,w:8,h:10})&&this.invincible<=0&&this.hurtPlayer()){this.explosions.push({x:m.x,y:m.y-14,age:0});return false;}return true;});
+   if(this.pilot){const p=this.pilot;p.mineGrace=p.vy!==0?.18:Math.max(0,(p.mineGrace||0)-dt);}
+   this.mines=this.mines.filter(m=>{
+    this.clearMineFromTeleport(m);
+    const box={x:m.x,y:m.y-1,w:3,h:1};
+    const enemy=this.enemies.find(e=>overlap(box,{x:e.x+3,y:e.y+12,w:8,h:3}));
+    if(enemy){this.destroyEnemy(enemy);return false;}
+    const p=this.pilot;
+    // Only the centre of the feet triggers a mine, with landing grace after a jump.
+    if(p&&p.vy===0&&!(p.mineGrace>0)&&overlap(box,{x:p.x+6,y:p.y+12,w:2,h:2})&&this.invincible<=0&&this.hurtPlayer()){
+     this.explosions.push({x:m.x,y:m.y-14,age:0});return false;
+    }
+    return true;
+   });
    this.explosions.forEach(e=>e.age+=dt);this.explosions=this.explosions.filter(e=>e.age<.5);
   }
   shotHitsEnemy(shot){
