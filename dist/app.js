@@ -1,5 +1,6 @@
 /* Browser UI and renderer. The core does not depend on DOM or animation frames. */
 'use strict';
+document.documentElement.classList.toggle('dev-mode',new URLSearchParams(location.search).get('dev')==='true');
 const {Game,rowAddress,triple,pixelX}=MinitCore;
 const game=new Game(MINIT_ASSETS),$=s=>document.querySelector(s),canvas=$('#game'),ctx=canvas.getContext('2d');
 game.continuous=true;
@@ -130,7 +131,7 @@ function input(){
  const fine=(keys.has('ShiftLeft')||keys.has('ShiftRight')?.2:1)*(!onFoot&&magnifierActive(game.worldPosition())?.25:1);
  const m=mouse.sample(onFoot?{x:game.pilot.x-11,y:game.pilot.y}:game.worldPosition(),game.carrying);
  const manual=x||y||joy.x||joy.y||axisTap.x||axisTap.y;
- return {up:keyboard&&(y<0||axisTap.y<0),down:keyboard&&(y>0||axisTap.y>0),jump:taps.jump||keys.has('KeyZ')||pointers.jump.size>0,crouch:taps.crouch||keyboard&&(y>0||axisTap.y>0)||joy.y>.5||pointers.crouch.size>0,interact:taps.interact,cockpit:taps.cockpit,
+ return {up:joy.y<-.5||keyboard&&(y<0||axisTap.y<0),down:joy.y>.5||keyboard&&(y>0||axisTap.y>0),jump:taps.jump||keys.has('KeyZ')||pointers.jump.size>0,crouch:taps.crouch||keyboard&&(y>0||axisTap.y>0)||joy.y>.5||pointers.crouch.size>0,interact:taps.interact,cockpit:taps.cockpit,
  x:(x||joy.x||axisTap.x||(!keyboard?m.x:0))*fine,y:(y||joy.y||axisTap.y||(!keyboard?m.y:0))*fine,
  aimX:onFoot?m.aimX:manual?(x||joy.x||axisTap.x):m.aimX,aimY:manual?(y||joy.y||axisTap.y):m.aimY,
  fire:taps.fire||!onFoot&&keys.has('Space')||pointers.fire.size>0||m.fire,drop:taps.drop||keys.has('KeyC')||keys.has('KeyX')||pointers.drop.size>0||m.drop};
@@ -283,3 +284,16 @@ joystick.onpointerdown=e=>{if(joy.pointer!==null)return;e.preventDefault();joy.p
 joystick.onpointermove=e=>{if(e.pointerId===joy.pointer)moveJoy(e);};
 joystick.onpointerup=joystick.onpointercancel=joystick.onlostpointercapture=e=>{if(e.pointerId===joy.pointer){joy.x=joy.y=0;joy.pointer=null;$('#stick').style.transform='';}};
 render();requestAnimationFrame(frame);
+
+const gameDisplay=$('.display'),fullscreenButton=$('#fullscreen');
+function fullscreenState(){const active=document.fullscreenElement===gameDisplay||gameDisplay.classList.contains('fullscreen-fallback');fullscreenButton.textContent=active?'Quitter plein écran':'Plein écran';fullscreenButton.setAttribute('aria-pressed',String(active));document.body.classList.toggle('game-fullscreen',active);clearInput();}
+fullscreenButton.onclick=async e=>{
+ e.stopPropagation();
+ if(document.fullscreenElement===gameDisplay)await document.exitFullscreen();
+ else if(gameDisplay.classList.contains('fullscreen-fallback'))gameDisplay.classList.remove('fullscreen-fallback');
+ else{try{if(!gameDisplay.requestFullscreen)throw new Error('Fullscreen indisponible');await gameDisplay.requestFullscreen();}catch{gameDisplay.classList.add('fullscreen-fallback');}}
+ fullscreenState();
+};
+document.addEventListener('fullscreenchange',fullscreenState);
+document.addEventListener('keydown',e=>{if(e.code==='Escape'&&gameDisplay.classList.contains('fullscreen-fallback')){gameDisplay.classList.remove('fullscreen-fallback');fullscreenState();}});
+$('#touch-cockpit').onclick=e=>{e.stopPropagation();if(started&&!game.paused){if(game.pilot&&Math.abs(game.pilot.x+7-428)<22&&Math.abs(game.pilot.y+14-140)<8)taps.interact=true;else taps.cockpit=true;}};

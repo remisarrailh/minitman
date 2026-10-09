@@ -20,3 +20,5 @@ Les assets éditables sont dans `web/assets/themes/original/`. Les éditeurs d�
 
 GitHub Pages est publié automatiquement depuis `dist` sur chaque push de `main`.
 Ce dépôt contient uniquement le portage web. Il n’inclut ni disquette, ni exécutable original, ni désassemblage, ni manuel.
+
+Bouton « Plein écran » dans le jeu. Les contrôles tactiles sont superposés sur les appareils à écran tactile. Ajouter `?dev=true` à l’URL pour afficher les sliders de réglage.

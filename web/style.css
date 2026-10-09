@@ -9,3 +9,28 @@ body.panorama main{max-width:1600px}body.panorama #game{aspect-ratio:840/262}bod
 .theme-control{display:flex;align-items:center;gap:10px;margin-bottom:12px;font:12px ui-monospace,monospace;grid-column:1/-1}.theme-control select{padding:7px 12px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink)}
 
 .actions button[hidden]{display:none}.actions #jump,.actions #crouch{border-radius:10px;font-size:13px}.actions{flex-wrap:wrap;justify-content:flex-end}
+
+.game-stage{position:relative;width:100%}
+#fullscreen{position:absolute;right:8px;top:8px;z-index:5;background:#17212bcc;padding:7px 10px;font-size:11px}
+.game-stage #overlay{inset:0}
+.touch-controls{display:none}
+.display:fullscreen,.display.fullscreen-fallback{width:100vw!important;height:100dvh;max-width:none!important;border:0;border-radius:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#000}
+.display:fullscreen .hud,.display.fullscreen-fallback .hud,.display:fullscreen .scene-labels,.display.fullscreen-fallback .scene-labels{width:100%;flex-shrink:0}
+.display:fullscreen .game-stage,.display.fullscreen-fallback .game-stage{width:min(100vw,calc((100dvh - 70px) * 840 / 262));flex-shrink:0}
+.display.fullscreen-fallback{position:fixed;inset:0;z-index:1000}
+body.game-fullscreen{overflow:hidden}
+@media (pointer:coarse){
+ .game-stage .touch-controls{display:flex;position:absolute;inset:auto 0 0;z-index:4;align-items:flex-end;justify-content:space-between;margin:0;padding:8px max(8px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left));pointer-events:none;gap:8px;flex-direction:row}
+ .touch-controls #joystick,.touch-controls .actions button{pointer-events:auto;opacity:.65}
+ .touch-controls #joystick{width:clamp(60px,14vw,112px);height:clamp(60px,14vw,112px);flex-shrink:0;background:#24354499}
+ .touch-controls #stick{width:38%;height:38%;left:31%;top:31%}
+ .touch-controls .actions{max-width:48%;gap:4px}
+ .touch-controls .actions button,.touch-controls .actions #drop{width:clamp(38px,8vw,64px);height:clamp(38px,8vw,64px);padding:3px;font-size:12px;background:#243544aa}
+ .touch-controls .actions button span{font-size:8px}
+ .touch-controls #touch-cockpit{border-radius:10px}
+ .touch-controls #joystick i{display:none}
+ .game-stage:has(#overlay:not([hidden])) .touch-controls{visibility:hidden}
+}
+body.panorama .game-stage #overlay{inset:0}
+
+html:not(.dev-mode) [data-dev]{display:none!important}
