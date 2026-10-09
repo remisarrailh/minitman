@@ -221,7 +221,7 @@ console.log('PASS: roof elevator, interior floor travel, held input prevents rep
 
 const roundTrip=new Game(data);roundTrip.continuous=true;roundTrip.pilot={x:527,y:31,vy:0,facing:1,pose:'idle',animation:0,jumpHeld:false};
 roundTrip.step({down:true});for(let i=0;i<60;i++)roundTrip.step({});assert.equal(roundTrip.pilot.floor,62);
-roundTrip.step({up:true,jump:true});assert.ok(roundTrip.pilot.elevator,'Must be able to ascend at the arrival position without walking to another blue bar');for(let i=0;i<60;i++)roundTrip.step({});assert.equal(roundTrip.pilot.floor,45);assert.equal(roundTrip.pilot.y,31);
+roundTrip.step({up:true});assert.ok(!roundTrip.pilot.elevator,'No elevator at this arrival position');roundTrip.pilot.x=421;roundTrip.step({});roundTrip.step({up:true,jump:true});assert.ok(roundTrip.pilot.elevator);for(let i=0;i<60;i++)roundTrip.step({});assert.equal(roundTrip.pilot.floor,45);assert.equal(roundTrip.pilot.y,31);
 console.log('PASS: elevator descent and ascent at the same arrival position');
 
 for(const rate of [100,190,400]){
@@ -231,7 +231,7 @@ for(const rate of [100,190,400]){
 }
 console.log('PASS: interior solid wall blocks full pilot body at 100/190/400 percent and allows retreat');
 
-const roofEdge=new Game(data);roofEdge.continuous=true;roofEdge.pilot={x:537,y:48,floor:62,inside:true,liftX:544,vy:0,facing:1,pose:'idle',animation:0};roofEdge.step({up:true});for(let i=0;i<90;i++)roofEdge.step({});assert.equal(roofEdge.pilot.y,31);assert.equal(roofEdge.pilot.inside,false);
+const roofEdge=new Game(data);roofEdge.continuous=true;roofEdge.pilot={x:537,y:48,floor:62,inside:true,liftX:544,vy:0,facing:1,pose:'idle',animation:0};roofEdge.step({up:true});for(let i=0;i<90;i++)roofEdge.step({});assert.equal(roofEdge.pilot.y,48);assert.equal(roofEdge.pilot.inside,true);
 const reachableDoor=new Game(data);reachableDoor.continuous=true;reachableDoor.pilot={x:650,y:71,vy:0,facing:1,pose:'idle',animation:0};for(let i=0;i<100;i++)reachableDoor.step({x:1});reachableDoor.step({down:true});assert.equal(reachableDoor.pilot.inside,true);assert.equal(reachableDoor.pilot.floor,101);
 console.log('PASS: ascent remains on roof and supply door reachable through movement with wall collisions active');
 
@@ -242,7 +242,7 @@ console.log('PASS: editable collision rectangles and explicit teleport destinati
 const gravityTest=new Game(data);gravityTest.continuous=true;gravityTest.customZones={collisions:[{x:560,y:140,w:100,h:3}],teleports:[]};gravityTest.pilot={x:590,y:80,inside:true,vy:0,facing:1,pose:'idle',animation:0};gravityTest.step({});assert.ok(gravityTest.pilot.y>80);for(let i=0;i<120;i++)gravityTest.step({});assert.equal(gravityTest.pilot.y,126);assert.equal(gravityTest.pilot.vy,0);
 console.log('PASS: custom-zone gravity falls onto drawn platforms');
 
-const verticalTeleport=new Game(data);verticalTeleport.continuous=true;verticalTeleport.customZones={teleportDistance:13,collisions:[],teleports:[{x:480,y:20,w:30,h:40,trigger:'down'}]};verticalTeleport.pilot={x:490,y:31,vy:0,pose:'idle',facing:1,animation:0};verticalTeleport.step({down:true});assert.equal(verticalTeleport.pilot.x,490);assert.equal(verticalTeleport.pilot.y,44);verticalTeleport.customZones.teleports[0].trigger='up';verticalTeleport.step({});const yBefore=verticalTeleport.pilot.y;verticalTeleport.step({up:true});assert.equal(verticalTeleport.pilot.x,490);assert.equal(verticalTeleport.pilot.y,yBefore-13);
+const verticalTeleport=new Game(data);verticalTeleport.continuous=true;verticalTeleport.customZones={teleportDistance:13,collisions:[{x:480,y:45,w:30,h:2},{x:480,y:58,w:30,h:2}],teleports:[{x:480,y:20,w:30,h:40,trigger:'down'}]};verticalTeleport.pilot={x:490,y:31,vy:0,pose:'idle',facing:1,animation:0};verticalTeleport.step({down:true});assert.equal(verticalTeleport.pilot.x,490);assert.equal(verticalTeleport.pilot.y,44);verticalTeleport.customZones.teleports[0].trigger='up';verticalTeleport.step({});const yBefore=verticalTeleport.pilot.y;verticalTeleport.step({up:true});assert.equal(verticalTeleport.pilot.x,490);assert.equal(verticalTeleport.pilot.y,yBefore-13);
 console.log('PASS: shared verticalTeleport teleport distance preserves X in both directions');
 
 for(const trigger of ['up','down','both'])for(const command of ['up','down']){
@@ -332,6 +332,11 @@ const protectedLift=new Game(data);protectedLift.continuous=true;protectedLift.e
 const safeCustomLift=new Game(data);safeCustomLift.continuous=true;safeCustomLift.customZones={teleportDistance:13,collisions:[],teleports:[{x:480,y:20,w:40,h:30,trigger:'both'}]};safeCustomLift.pilot={x:490,y:31,vy:0,pose:'idle',facing:1,animation:0};safeCustomLift.step({down:true});assert.equal(safeCustomLift.pilot.y,44);assert.ok(safeCustomLift.invincible>=.999);assert.equal(safeCustomLift.hurtPlayer(),false);
 console.log('PASS: elevator descent protects throughout travel and one second after arrival, including custom lifts');
 
-const heldLift=new Game(data);heldLift.continuous=true;heldLift.enemySpawnRemaining=9999;heldLift.pilot={x:527,y:31,vy:0,facing:1,pose:'idle',animation:0};for(let i=0;i<180;i++)heldLift.step({down:true});assert.equal(heldLift.pilot.floor,62);assert.equal(heldLift.pilot.y,48);assert.equal(heldLift.pilot.elevator,null);heldLift.step({});for(let i=0;i<180;i++)heldLift.step({up:true,jump:true});assert.equal(heldLift.pilot.floor,45);assert.equal(heldLift.pilot.y,31);assert.equal(heldLift.pilot.vy,0);
+const heldLift=new Game(data);heldLift.continuous=true;heldLift.enemySpawnRemaining=9999;heldLift.pilot={x:527,y:31,vy:0,facing:1,pose:'idle',animation:0};for(let i=0;i<180;i++)heldLift.step({down:true});assert.equal(heldLift.pilot.floor,62);assert.equal(heldLift.pilot.y,48);assert.equal(heldLift.pilot.elevator,null);heldLift.pilot.x=421;heldLift.step({});for(let i=0;i<180;i++)heldLift.step({up:true,jump:true});assert.equal(heldLift.pilot.floor,45);assert.equal(heldLift.pilot.y,31);assert.equal(heldLift.pilot.vy,0);
 const heldCustom=new Game(data);heldCustom.continuous=true;heldCustom.enemySpawnRemaining=9999;heldCustom.customZones={teleportDistance:13,collisions:[{x:470,y:45,w:70,h:2},{x:470,y:58,w:70,h:2},{x:470,y:71,w:70,h:2}],teleports:[{x:480,y:45,w:30,h:1,trigger:'both'},{x:480,y:58,w:30,h:1,trigger:'both'}]};heldCustom.pilot={x:490,y:31,vy:0,facing:1,pose:'idle',animation:0};for(let i=0;i<180;i++)heldCustom.step({down:true});assert.equal(heldCustom.pilot.y,44);heldCustom.step({});for(let i=0;i<180;i++)heldCustom.step({up:true,jump:true});assert.equal(heldCustom.pilot.y,31);
 console.log('PASS: holding S/Z cannot chain elevator floors or jump after arrival; release required for next trip');
+
+for(const floor of [62,75,88,101,114,127,140]){
+ const g=new Game(data);g.continuous=true;g.enemySpawnRemaining=9999;g.pilot={x:480,y:floor-14,inside:true,floor,vy:0,pose:'idle',facing:1,animation:0,liftX:487};for(const direction of ['up','down']){g.step({});g.step({[direction]:true});assert.ok(!g.pilot.elevator);assert.equal(g.pilot.y,floor-14);}
+}
+console.log('PASS: remembered elevator X cannot authorize travel on any floor without an actual elevator');
