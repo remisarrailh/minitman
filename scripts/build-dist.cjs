@@ -1,0 +1,10 @@
+const fs=require('node:fs'),path=require('node:path');
+const root=path.resolve(__dirname,'..'),out=path.join(root,'dist');
+const files=['index.html','style.css','app.js','core.js','mouse.js','assets.js','asset-paths.js','animations.html','animations.js','zones.html','zones.js'];
+fs.mkdirSync(out,{recursive:true});
+for(const name of files)fs.copyFileSync(path.join(root,'web',name),path.join(out,name));
+fs.mkdirSync(path.join(out,'assets','themes'),{recursive:true});
+fs.copyFileSync(path.join(root,'web','assets','themes.json'),path.join(out,'assets','themes.json'));
+fs.cpSync(path.join(root,'web','assets','themes','original'),path.join(out,'assets','themes','original'),{recursive:true});
+fs.writeFileSync(path.join(out,'.nojekyll'),'');
+console.log('dist prêt : jeu, éditeurs et assets Original uniquement.');

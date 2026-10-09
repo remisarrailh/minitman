@@ -1,0 +1,359 @@
+{
+  "backgrounds": [
+    {
+      "id": 1,
+      "name": "pont",
+      "path": "decors/pont.png",
+      "width": 280,
+      "height": 192
+    },
+    {
+      "id": 2,
+      "name": "batiment",
+      "path": "decors/batiment.png",
+      "width": 280,
+      "height": 192
+    },
+    {
+      "id": 3,
+      "name": "ravitaillement",
+      "path": "decors/ravitaillement.png",
+      "width": 280,
+      "height": 192
+    }
+  ],
+  "sprites": [
+    {
+      "id": 0,
+      "name": "helico-gauche",
+      "path": "sprites/00-helico-gauche.png",
+      "width": 42,
+      "height": 15
+    },
+    {
+      "id": 1,
+      "name": "helico-diagonale-gauche",
+      "path": "sprites/01-helico-diagonale-gauche.png",
+      "width": 42,
+      "height": 15
+    },
+    {
+      "id": 2,
+      "name": "helico-face",
+      "path": "sprites/02-helico-face.png",
+      "width": 42,
+      "height": 15
+    },
+    {
+      "id": 3,
+      "name": "helico-diagonale-droite",
+      "path": "sprites/03-helico-diagonale-droite.png",
+      "width": 42,
+      "height": 15
+    },
+    {
+      "id": 4,
+      "name": "helico-droite",
+      "path": "sprites/04-helico-droite.png",
+      "width": 42,
+      "height": 15
+    },
+    {
+      "id": 5,
+      "name": "rotor-gauche",
+      "path": "sprites/05-rotor-gauche.png",
+      "width": 42,
+      "height": 7
+    },
+    {
+      "id": 6,
+      "name": "rotor-diagonale-gauche",
+      "path": "sprites/06-rotor-diagonale-gauche.png",
+      "width": 42,
+      "height": 7
+    },
+    {
+      "id": 7,
+      "name": "rotor-face",
+      "path": "sprites/07-rotor-face.png",
+      "width": 42,
+      "height": 7
+    },
+    {
+      "id": 8,
+      "name": "rotor-diagonale-droite",
+      "path": "sprites/08-rotor-diagonale-droite.png",
+      "width": 42,
+      "height": 7
+    },
+    {
+      "id": 9,
+      "name": "rotor-droite",
+      "path": "sprites/09-rotor-droite.png",
+      "width": 42,
+      "height": 7
+    },
+    {
+      "id": 10,
+      "mirrorOf": 11,
+      "path": "sprites/11-personnage-course-b.png",
+      "width": 14,
+      "height": 14,
+      "variants": [
+        "sprites/11-personnage-course-b.png",
+        "sprites/variantes/11-personnage-course-b-1.png",
+        "sprites/variantes/11-personnage-course-b-2.png",
+        "sprites/variantes/11-personnage-course-b-3.png",
+        "sprites/variantes/11-personnage-course-b-4.png",
+        "sprites/variantes/11-personnage-course-b-5.png",
+        "sprites/variantes/11-personnage-course-b-6.png"
+      ],
+      "name": "personnage-course-b-miroir"
+    },
+    {
+      "id": 11,
+      "name": "personnage-course-b",
+      "path": "sprites/11-personnage-course-b.png",
+      "width": 14,
+      "height": 14,
+      "variants": [
+        "sprites/11-personnage-course-b.png",
+        "sprites/variantes/11-personnage-course-b-1.png",
+        "sprites/variantes/11-personnage-course-b-2.png",
+        "sprites/variantes/11-personnage-course-b-3.png",
+        "sprites/variantes/11-personnage-course-b-4.png",
+        "sprites/variantes/11-personnage-course-b-5.png",
+        "sprites/variantes/11-personnage-course-b-6.png"
+      ]
+    },
+    {
+      "id": 12,
+      "name": "personnage-tir-droite",
+      "path": "sprites/12-personnage-tir-droite.png",
+      "width": 14,
+      "height": 14
+    },
+    {
+      "id": 13,
+      "mirrorOf": 12,
+      "path": "sprites/12-personnage-tir-droite.png",
+      "width": 14,
+      "height": 14,
+      "name": "personnage-tir-droite-miroir"
+    },
+    {
+      "id": 14,
+      "mirrorOf": 15,
+      "path": "sprites/15-personnage-accroupi-droite.png",
+      "width": 14,
+      "height": 14,
+      "name": "personnage-accroupi-droite-miroir"
+    },
+    {
+      "id": 15,
+      "name": "personnage-accroupi-droite",
+      "path": "sprites/15-personnage-accroupi-droite.png",
+      "width": 14,
+      "height": 14
+    },
+    {
+      "id": 16,
+      "mirrorOf": 17,
+      "path": "sprites/17-personnage-saut-droite.png",
+      "width": 14,
+      "height": 14,
+      "variants": [
+        "sprites/17-personnage-saut-droite.png",
+        "sprites/variantes/17-personnage-saut-droite-1.png",
+        "sprites/variantes/17-personnage-saut-droite-2.png",
+        "sprites/variantes/17-personnage-saut-droite-3.png",
+        "sprites/variantes/17-personnage-saut-droite-4.png",
+        "sprites/variantes/17-personnage-saut-droite-5.png",
+        "sprites/variantes/17-personnage-saut-droite-6.png"
+      ],
+      "name": "personnage-saut-droite-miroir"
+    },
+    {
+      "id": 17,
+      "name": "personnage-saut-droite",
+      "path": "sprites/17-personnage-saut-droite.png",
+      "width": 14,
+      "height": 14,
+      "variants": [
+        "sprites/17-personnage-saut-droite.png",
+        "sprites/variantes/17-personnage-saut-droite-1.png",
+        "sprites/variantes/17-personnage-saut-droite-2.png",
+        "sprites/variantes/17-personnage-saut-droite-3.png",
+        "sprites/variantes/17-personnage-saut-droite-4.png",
+        "sprites/variantes/17-personnage-saut-droite-5.png",
+        "sprites/variantes/17-personnage-saut-droite-6.png"
+      ]
+    },
+    {
+      "id": 18,
+      "name": "robot-etat-1",
+      "path": "sprites/18-robot-etat-1.png",
+      "width": 14,
+      "height": 14,
+      "variants": [
+        "sprites/18-robot-etat-1.png",
+        "sprites/variantes/18-robot-etat-1-1.png",
+        "sprites/variantes/18-robot-etat-1-2.png",
+        "sprites/variantes/18-robot-etat-1-3.png",
+        "sprites/variantes/18-robot-etat-1-4.png",
+        "sprites/variantes/18-robot-etat-1-5.png",
+        "sprites/variantes/18-robot-etat-1-6.png"
+      ]
+    },
+    {
+      "id": 19,
+      "name": "robot-etat-2",
+      "path": "sprites/19-robot-etat-2.png",
+      "width": 14,
+      "height": 14,
+      "variants": [
+        "sprites/19-robot-etat-2.png",
+        "sprites/variantes/19-robot-etat-2-1.png",
+        "sprites/variantes/19-robot-etat-2-2.png",
+        "sprites/variantes/19-robot-etat-2-3.png",
+        "sprites/variantes/19-robot-etat-2-4.png",
+        "sprites/variantes/19-robot-etat-2-5.png",
+        "sprites/variantes/19-robot-etat-2-6.png"
+      ]
+    },
+    {
+      "id": 20,
+      "name": "robot-etat-3",
+      "path": "sprites/20-robot-etat-3.png",
+      "width": 14,
+      "height": 14,
+      "variants": [
+        "sprites/20-robot-etat-3.png",
+        "sprites/variantes/20-robot-etat-3-1.png",
+        "sprites/variantes/20-robot-etat-3-2.png",
+        "sprites/variantes/20-robot-etat-3-3.png",
+        "sprites/variantes/20-robot-etat-3-4.png",
+        "sprites/variantes/20-robot-etat-3-5.png",
+        "sprites/variantes/20-robot-etat-3-6.png"
+      ]
+    },
+    {
+      "id": 21,
+      "name": "triangle-pont",
+      "path": "sprites/21-triangle-pont.png",
+      "width": 35,
+      "height": 18
+    },
+    {
+      "id": 22,
+      "name": "barre-pont",
+      "path": "sprites/22-barre-pont.png",
+      "width": 35,
+      "height": 7
+    },
+    {
+      "id": 23,
+      "name": "treuil",
+      "path": "sprites/23-treuil.png",
+      "width": 21,
+      "height": 8
+    },
+    {
+      "id": 24,
+      "name": "train",
+      "path": "sprites/24-train.png",
+      "width": 63,
+      "height": 12
+    },
+    {
+      "id": 25,
+      "name": "missile-25",
+      "path": "sprites/25-missile-25.png",
+      "width": 35,
+      "height": 9
+    },
+    {
+      "id": 26,
+      "name": "missile-26",
+      "path": "sprites/26-missile-26.png",
+      "width": 21,
+      "height": 26,
+      "variants": [
+        "sprites/26-missile-26.png",
+        "sprites/variantes/26-missile-26-1.png",
+        "sprites/variantes/26-missile-26-2.png",
+        "sprites/variantes/26-missile-26-3.png",
+        "sprites/variantes/26-missile-26-4.png",
+        "sprites/variantes/26-missile-26-5.png",
+        "sprites/variantes/26-missile-26-6.png"
+      ]
+    },
+    {
+      "id": 27,
+      "name": "explosion",
+      "path": "sprites/27-explosion.png",
+      "width": 21,
+      "height": 12,
+      "variants": [
+        "sprites/27-explosion.png",
+        "sprites/variantes/27-explosion-1.png",
+        "sprites/variantes/27-explosion-2.png",
+        "sprites/variantes/27-explosion-3.png",
+        "sprites/variantes/27-explosion-4.png",
+        "sprites/variantes/27-explosion-5.png",
+        "sprites/variantes/27-explosion-6.png"
+      ]
+    },
+    {
+      "id": 28,
+      "name": "pilote",
+      "path": "sprites/28-pilote.png",
+      "width": 21,
+      "height": 14
+    }
+  ],
+  "animations": {
+    "run": {
+      "type": 11,
+      "frames": [
+        0,
+        2,
+        5,
+        6,
+        1,
+        6,
+        5,
+        2
+      ],
+      "fps": 15
+    },
+    "robotState1": {
+      "type": 18,
+      "frames": [
+        1,
+        2,
+        3,
+        4,
+        3,
+        2
+      ],
+      "fps": 15
+    },
+    "robotState2": {
+      "type": 19,
+      "frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        4,
+        3,
+        2,
+        1
+      ],
+      "fps": 15
+    }
+  }
+}
