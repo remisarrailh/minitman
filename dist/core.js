@@ -393,6 +393,7 @@
    const up=Boolean(input.up),down=Boolean(input.down),edge=(up&&!p.upHeld)||(down&&!p.downHeld);
    p.upHeld=up;p.downHeld=down;
    if(p.elevator){
+    if(p.elevator.y>p.y)this.invincible=Math.max(this.invincible,1+dt);
     p.y+=Math.sign(p.elevator.y-p.y)*Math.min(Math.abs(p.elevator.y-p.y),28*dt);
     p.vy=0;p.pose='idle';
     if(Math.abs(p.y-p.elevator.y)<.001){p.floor=p.elevator.floor;p.inside=p.floor!==45;if(!p.inside){p.x=Math.max(420,Math.min(530,p.x));p.previousX=p.x;p.liftX=p.x+7;}p.elevator=null;p.upHeld=false;p.downHeld=false;}
@@ -405,7 +406,7 @@
     const touches=z=>p.x+11>z.x&&p.x+3<z.x+z.w&&p.y+14>=z.y-1&&p.y<z.y+z.h;
     atCustomLift=up&&this.customZones.teleports.some(z=>z.trigger!=='down'&&touches(z));
     const zone=this.customZones.teleports.find(z=>edge&&(z.trigger==='both'?(up!==down):z.trigger==='up'?up:down)&&touches(z));
-    if(zone){if(Number.isFinite(this.customZones.teleportDistance)){p.y=Math.max(0,Math.min(248,p.y+(zone.trigger==='down'||zone.trigger==='both'&&down?1:-1)*this.customZones.teleportDistance));}else{p.x=zone.toX;p.y=zone.toY;}p.previousX=p.x;p.previousY=p.y;p.floor=p.y+14;p.inside=true;p.vy=0;p.pose='idle';p.jumpHeld=Boolean(input.jump);return;}
+    if(zone){const beforeY=p.y;if(Number.isFinite(this.customZones.teleportDistance)){p.y=Math.max(0,Math.min(248,p.y+(zone.trigger==='down'||zone.trigger==='both'&&down?1:-1)*this.customZones.teleportDistance));}else{p.x=zone.toX;p.y=zone.toY;}p.previousX=p.x;p.previousY=p.y;p.floor=p.y+14;p.inside=true;p.vy=0;p.pose='idle';p.jumpHeld=Boolean(input.jump);if(p.y>beforeY)this.invincible=Math.max(this.invincible,1+dt);return;}
    }
    if(!this.customZones&&edge&&Math.abs(p.x+7-686)<30){
     if(entrance&&down){p.x=670;p.previousX=p.x;p.inside=true;p.floor=101;p.y=87;p.vy=0;p.pose='idle';return;}
@@ -416,7 +417,7 @@
     const levels=[45,62,75,88,101,114,127,140],current=levels.indexOf(floor),next=current+(down?1:-1);
     if(next>=0&&next<levels.length){
      const target=entrance&&down?101:levels[next];
-     p.liftX=p.x+7;p.inside=true;p.floor=floor;p.elevator={floor:target,y:target-14};p.vy=0;p.pose='idle';return;
+     p.liftX=p.x+7;p.inside=true;p.floor=floor;p.elevator={floor:target,y:target-14};if(target>floor)this.invincible=Math.max(this.invincible,1+dt);p.vy=0;p.pose='idle';return;
     }
    }
    const grounded=p.y>=floor-14-.01&&p.vy>=0;
