@@ -236,12 +236,12 @@
    if(dropMine&&inBase){const mine={x:e.x,y:e.y+14};this.clearMineFromTeleport(mine);this.mines.push(mine);}
    this.enemies=this.enemies.filter(other=>other!==e);
   }
-  hurtPlayer(){
-   if(this.pilot?.pose==='crouch'||this.invincible>0||this.respawnRemaining>0||this.ended)return false;
+  hurtPlayer(cause='combat'){
+   if(cause!=='fall'&&(this.pilot?.pose==='crouch'||this.invincible>0)||this.respawnRemaining>0||this.ended)return false;
    const p=this.pilot,w=this.worldPosition();
    this.explosions.push({x:p?p.x:w.x,y:p?p.y:w.y,age:0});
    if(p)this.bonuses.push({x:p.x,y:p.y+14});
-   if(!this.infiniteLives)this.lives--;this.respawnPilot=p?{...p,vy:0,pose:"idle",animation:0,jumpHeld:false,upHeld:false,downHeld:false,elevator:null}:null;if(p?.inside&&!this.respawnInBase){
+   if(!this.infiniteLives)this.lives--;this.respawnPilot=p?{...p,vy:0,pose:"idle",animation:0,jumpHeld:false,upHeld:false,downHeld:false,elevator:null,fallOriginY:undefined}:null;if(p&&(cause==='fall'||p.inside&&!this.respawnInBase)){
     const side=this.landingSurface(w.x+52)===this.landingSurface(w.x+21)?42:-10;
     this.respawnPilot={x:w.x+side,y:w.y+1,vy:0,facing:1,pose:'idle',animation:0,jumpHeld:false,upHeld:false,downHeld:false};
    }
@@ -393,6 +393,7 @@
    const up=Boolean(input.up),down=Boolean(input.down),edge=(up&&!p.upHeld)||(down&&!p.downHeld);
    p.upHeld=up;p.downHeld=down;
    if(p.elevator){
+    delete p.fallOriginY;
     p.jumpHeld=Boolean(input.jump);
     if(p.elevator.y>p.y)this.invincible=Math.max(this.invincible,1+dt);
     p.y+=Math.sign(p.elevator.y-p.y)*Math.min(Math.abs(p.elevator.y-p.y),28*dt);
@@ -407,7 +408,7 @@
     const touches=z=>p.vy===0&&p.x+7>=z.x&&p.x+7<=z.x+z.w&&p.y+14>=z.y-1&&p.y+14<=z.y+z.h+1;
     atCustomLift=up&&this.customZones.teleports.some(z=>z.trigger!=='down'&&touches(z));
     const zone=this.customZones.teleports.find(z=>edge&&(z.trigger==='both'?(up!==down):z.trigger==='up'?up:down)&&touches(z));
-    if(zone){const beforeY=p.y;if(Number.isFinite(this.customZones.teleportDistance)){p.y=Math.max(0,Math.min(248,p.y+(zone.trigger==='down'||zone.trigger==='both'&&down?1:-1)*this.customZones.teleportDistance));}else{p.x=zone.toX;p.y=zone.toY;}p.previousX=p.x;p.previousY=p.y;p.floor=p.y+14;p.inside=true;p.vy=0;p.pose='idle';p.jumpHeld=Boolean(input.jump);if(p.y>beforeY)this.invincible=Math.max(this.invincible,1+dt);return;}
+    if(zone){delete p.fallOriginY;const beforeY=p.y;if(Number.isFinite(this.customZones.teleportDistance)){p.y=Math.max(0,Math.min(248,p.y+(zone.trigger==='down'||zone.trigger==='both'&&down?1:-1)*this.customZones.teleportDistance));}else{p.x=zone.toX;p.y=zone.toY;}p.previousX=p.x;p.previousY=p.y;p.floor=p.y+14;p.inside=true;p.vy=0;p.pose='idle';p.jumpHeld=Boolean(input.jump);if(p.y>beforeY)this.invincible=Math.max(this.invincible,1+dt);return;}
    }
    if(!this.customZones&&edge&&Math.abs(p.x+7-686)<30){
     if(entrance&&down){p.x=670;p.previousX=p.x;p.inside=true;p.floor=101;p.y=87;p.vy=0;p.pose='idle';return;}
@@ -425,6 +426,7 @@
    const crouch=Boolean(input.crouch)&&grounded,jump=Boolean(input.jump);
    if(jump&&!atCustomLift&&!(up&&atLift)&&!p.jumpHeld&&grounded&&!crouch){p.jumpFloor=floor;p.vy=-65*Math.sqrt(this.jumpHeightPercent/100);}
    p.jumpHeld=jump;
+   p.fallOriginY??=p.y;
    const startX=p.x,dx=(input.x||0)*(crouch?0:35)*dt*this.pilotSpeedPercent/100,steps=Math.max(1,Math.ceil(Math.abs(dx)));
    if(Math.abs(input.x||0)>.01)p.facing=input.x<0?-1:1;
    for(let i=0;i<steps;i++){
@@ -436,7 +438,8 @@
    p.vy=Math.min(70,p.vy+160*dt);
    let nextY=p.y+p.vy*dt;
    p.y=Math.min(surface-14,nextY);
-   if(p.y>=surface-14){p.vy=0;delete p.jumpFloor;}
+   if(p.y-p.fallOriginY>24){this.hurtPlayer('fall');return;}
+   if(p.y>=surface-14){p.vy=0;delete p.jumpFloor;delete p.fallOriginY;}
    const pose=p.vy!==0?'jump':crouch?'crouch':Math.abs(p.x-startX)>.001?'run':'idle';
    p.animation=pose==='run'?(p.pose==='run'?p.animation+dt:0):0;p.pose=pose;
   }

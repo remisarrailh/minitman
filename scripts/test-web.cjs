@@ -239,7 +239,7 @@ const custom=new Game(data);custom.continuous=true;custom.customZones={collision
 custom.pilot.x=490;custom.step({up:true,jump:true});assert.equal(custom.pilot.x,600);assert.equal(custom.pilot.y,87);assert.equal(custom.pilot.floor,101);custom.step({up:true});assert.equal(custom.pilot.y,87);
 console.log('PASS: editable collision rectangles and explicit teleport destination/floor');
 
-const gravityTest=new Game(data);gravityTest.continuous=true;gravityTest.customZones={collisions:[{x:560,y:140,w:100,h:3}],teleports:[]};gravityTest.pilot={x:590,y:80,inside:true,vy:0,facing:1,pose:'idle',animation:0};gravityTest.step({});assert.ok(gravityTest.pilot.y>80);for(let i=0;i<120;i++)gravityTest.step({});assert.equal(gravityTest.pilot.y,126);assert.equal(gravityTest.pilot.vy,0);
+const gravityTest=new Game(data);gravityTest.continuous=true;gravityTest.customZones={collisions:[{x:560,y:140,w:100,h:3}],teleports:[]};gravityTest.pilot={x:590,y:110,inside:true,vy:0,facing:1,pose:'idle',animation:0};gravityTest.step({});assert.ok(gravityTest.pilot.y>110);for(let i=0;i<120;i++)gravityTest.step({});assert.equal(gravityTest.pilot.y,126);assert.equal(gravityTest.pilot.vy,0);
 console.log('PASS: custom-zone gravity falls onto drawn platforms');
 
 const verticalTeleport=new Game(data);verticalTeleport.continuous=true;verticalTeleport.customZones={teleportDistance:13,collisions:[{x:480,y:45,w:30,h:2},{x:480,y:58,w:30,h:2}],teleports:[{x:480,y:20,w:30,h:40,trigger:'down'}]};verticalTeleport.pilot={x:490,y:31,vy:0,pose:'idle',facing:1,animation:0};verticalTeleport.step({down:true});assert.equal(verticalTeleport.pilot.x,490);assert.equal(verticalTeleport.pilot.y,44);verticalTeleport.customZones.teleports[0].trigger='up';verticalTeleport.step({});const yBefore=verticalTeleport.pilot.y;verticalTeleport.step({up:true});assert.equal(verticalTeleport.pilot.x,490);assert.equal(verticalTeleport.pilot.y,yBefore-13);
@@ -343,3 +343,9 @@ console.log('PASS: remembered elevator X cannot authorize travel on any floor wi
 
 const computerWalk=new Game(data);computerWalk.continuous=true;computerWalk.enemySpawnRemaining=99999;for(let hit=1;hit<=3;hit++){computerWalk.enemies=[{x:668,y:126,state:1,hits:0,animation:0,action:'base',phase:'inside'}];for(let frame=0;frame<1000&&computerWalk.enemies.length;frame++)computerWalk.stepEnemies(1/60);assert.equal(computerWalk.computerHits,hit);assert.equal(computerWalk.enemies.length,0);assert.equal(computerWalk.mines.length,0);}assert.equal(computerWalk.ended,true);
 console.log('PASS: enemies walk from the bottom elevator into computer contact, explode and cause defeat at three hits');
+
+for(const x of [405,545,700]){
+ const g=new Game(data);g.continuous=true;g.enemySpawnRemaining=9999;g.pilot={x,y:31,vy:0,pose:'idle',facing:1,animation:0};for(let i=0;i<120&&g.pilot;i++)g.step({});assert.equal(g.pilot,null);assert.ok(g.respawnRemaining>0);
+}
+const shortDrop=new Game(data);shortDrop.continuous=true;shortDrop.enemySpawnRemaining=9999;shortDrop.customZones={collisions:[{x:470,y:58,w:70,h:2}],teleports:[]};shortDrop.pilot={x:490,y:31,vy:0,pose:'idle',facing:1,animation:0};for(let i=0;i<60;i++)shortDrop.step({});assert.ok(shortDrop.pilot);assert.equal(shortDrop.pilot.y,44);
+console.log('PASS: long falls in open gaps kill the pilot; a 13-pixel drop remains safe');
