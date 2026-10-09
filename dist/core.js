@@ -393,10 +393,11 @@
    const up=Boolean(input.up),down=Boolean(input.down),edge=(up&&!p.upHeld)||(down&&!p.downHeld);
    p.upHeld=up;p.downHeld=down;
    if(p.elevator){
+    p.jumpHeld=Boolean(input.jump);
     if(p.elevator.y>p.y)this.invincible=Math.max(this.invincible,1+dt);
     p.y+=Math.sign(p.elevator.y-p.y)*Math.min(Math.abs(p.elevator.y-p.y),28*dt);
     p.vy=0;p.pose='idle';
-    if(Math.abs(p.y-p.elevator.y)<.001){p.floor=p.elevator.floor;p.inside=p.floor!==45;if(!p.inside){p.x=Math.max(420,Math.min(530,p.x));p.previousX=p.x;p.liftX=p.x+7;}p.elevator=null;p.upHeld=false;p.downHeld=false;}
+    if(Math.abs(p.y-p.elevator.y)<.001){p.floor=p.elevator.floor;p.inside=p.floor!==45;if(!p.inside){p.x=Math.max(420,Math.min(530,p.x));p.previousX=p.x;p.liftX=p.x+7;}p.elevator=null;}
     return;
    }
    const entrance=Math.abs(p.x+7-686)<30&&Math.abs(p.y-(85-14))<1;
