@@ -202,7 +202,7 @@
     if(e.phase==='inside'){
      const target=e.y<126-.01?{x:e.x,y:126}:{x:421,y:126},dx=target.x-e.x,dy=target.y-e.y,d=Math.hypot(dx,dy),step=Math.min(d,20*dt);
      if(d)this.moveEnemy(e,e.x+dx/d*step,e.y+dy/d*step);
-     if(Math.abs(e.x-421)<.01&&Math.abs(e.y-126)<.01){this.destroyEnemy(e);this.computerHits++;this.notice='Ordinateur touché — '+this.computerHits+'/'+this.computerHitLimit;if(this.computerHits>=this.computerHitLimit){this.ended=true;this.notice='Fin de partie — ordinateur détruit';}}
+     if(e.x<=432&&e.x+14>=420&&Math.abs(e.y-126)<1){this.destroyEnemy(e);this.computerHits++;this.notice='Ordinateur touché — '+this.computerHits+'/'+this.computerHitLimit;if(this.computerHits>=this.computerHitLimit){this.ended=true;this.notice='Fin de partie — ordinateur détruit';}}
      continue;
     }
     e.routeIndex??=0;const entry=route[Math.min(e.routeIndex,route.length-1)];

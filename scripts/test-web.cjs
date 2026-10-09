@@ -340,3 +340,6 @@ for(const floor of [62,75,88,101,114,127,140]){
  const g=new Game(data);g.continuous=true;g.enemySpawnRemaining=9999;g.pilot={x:480,y:floor-14,inside:true,floor,vy:0,pose:'idle',facing:1,animation:0,liftX:487};for(const direction of ['up','down']){g.step({});g.step({[direction]:true});assert.ok(!g.pilot.elevator);assert.equal(g.pilot.y,floor-14);}
 }
 console.log('PASS: remembered elevator X cannot authorize travel on any floor without an actual elevator');
+
+const computerWalk=new Game(data);computerWalk.continuous=true;computerWalk.enemySpawnRemaining=99999;for(let hit=1;hit<=3;hit++){computerWalk.enemies=[{x:668,y:126,state:1,hits:0,animation:0,action:'base',phase:'inside'}];for(let frame=0;frame<1000&&computerWalk.enemies.length;frame++)computerWalk.stepEnemies(1/60);assert.equal(computerWalk.computerHits,hit);assert.equal(computerWalk.enemies.length,0);assert.equal(computerWalk.mines.length,0);}assert.equal(computerWalk.ended,true);
+console.log('PASS: enemies walk from the bottom elevator into computer contact, explode and cause defeat at three hits');
