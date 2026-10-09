@@ -266,7 +266,7 @@
     if(this.pilot&&overlap(box,{x:this.pilot.x+3,y:this.pilot.y+4,w:10,h:10})){this.lives++;this.notice='Bonus : une vie gagnée';return false;}
     const enemy=this.enemies.find(e=>overlap(box,{x:e.x+2,y:e.y+4,w:11,h:11}));if(enemy){enemy.canShoot=false;return false;}return true;
    });
-   this.mines=this.mines.filter(m=>{if(this.pilot&&overlap({x:m.x,y:m.y-1,w:3,h:1},{x:this.pilot.x+3,y:this.pilot.y+4,w:8,h:10})&&this.invincible<=0&&this.hurtPlayer()){this.explosions.push({x:m.x,y:m.y-14,age:0});return false;}return true;});
+   this.mines=this.mines.filter(m=>{if(this.pilot&&this.pilot.vy===0&&overlap({x:m.x,y:m.y-1,w:3,h:1},{x:this.pilot.x+3,y:this.pilot.y+4,w:8,h:10})&&this.invincible<=0&&this.hurtPlayer()){this.explosions.push({x:m.x,y:m.y-14,age:0});return false;}return true;});
    this.explosions.forEach(e=>e.age+=dt);this.explosions=this.explosions.filter(e=>e.age<.5);
   }
   shotHitsEnemy(shot){
@@ -425,18 +425,16 @@
    }
    this.stepMission(input,dt);
    if(this.ended)return;
-   // Apply the current crouch input before damage, including the press/release frame.
-   if(this.pilot&&!this.pilot.elevator){
-    const p=this.pilot,grounded=p.y>=this.pilotFloor(p)-14-.01&&p.vy>=0;
-    if(input.crouch&&grounded)p.pose='crouch';else if(p.pose==='crouch')p.pose='idle';
-   }
+   // Resolve movement before contact damage so a jump starts on the input frame.
+   const movedPilot=this.pilot;
+   if(movedPilot)this.stepPilot(input,dt);
    this.stepEnemies(dt);this.stepCombat(dt);
    if(this.ended)return;
    this.tick++;this.time=Math.max(0,this.time-dt);this.cooldown=Math.max(0,this.cooldown-dt);this.invincible=Math.max(0,this.invincible-dt);
    if(input.cockpit&&!this.previous.cockpit)this.cockpit();
    if(this.respawnRemaining>0)return;
    if(this.pilot){
-    this.stepPilot(input,dt);
+    if(this.pilot!==movedPilot)this.stepPilot(input,dt);
     if(!this.pilot.elevator&&input.fire&&Math.abs(input.x||0)<.01&&['idle','crouch'].includes(this.pilot.pose)){
      const p=this.pilot;
      if(p.pose==='idle')p.pose='shoot';if(Math.abs(input.aimX||0)>.01)p.facing=input.aimX<0?-1:1;
