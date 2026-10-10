@@ -151,7 +151,7 @@ for(const continuous of [false,true])for(const direction of [-1,1]){
 console.log('PASS: swept four-pixel shots stop on solids, pass through holes, both directions and across world coordinates');
 
 const frontalFire=new Game(data);frontalFire.step({fire:true,aimX:0,aimY:-1});
-assert.equal(frontalFire.orientation,2);assert.equal(frontalFire.shots.length,1);assert.equal(frontalFire.shots[0].vy,-360);assert.equal(frontalFire.events.includes('fire'),true);assert.ok(frontalFire.cooldown>0);
+assert.equal(frontalFire.orientation,2);assert.equal(frontalFire.shots.length,0);assert.equal(frontalFire.events.includes('fire'),false);assert.equal(frontalFire.cooldown,0);
 for(const aimX of [-1,1]){const lateralFire=new Game(data);lateralFire.step({fire:true,aimX});assert.equal(lateralFire.shots.length,1);}
 console.log('PASS: mouse aiming permits vertical and lateral shots');
 
@@ -353,6 +353,9 @@ console.log('PASS: long falls in open gaps kill the pilot; a 13-pixel drop remai
 const aimShots=new Game(data);aimShots.continuous=true;aimShots.assets={...data,backgrounds:data.backgrounds.map(()=>Array(8192).fill(0))};aimShots.aimedShot(300,80,{aimTargetX:400,aimTargetY:180},true);const diagonal=aimShots.shots[0];assert.ok(Math.abs(Math.hypot(diagonal.vx,diagonal.vy)-360)<1e-8);assert.ok(aimShots.advanceShot(diagonal,.1));assert.ok(Math.abs(diagonal.x-325.455844)<.001);assert.ok(Math.abs(diagonal.y-105.455844)<.001);aimShots.enemies=[{x:340,y:120,state:1,hits:0,animation:0,phase:'inside'}];assert.equal(aimShots.advanceShot(diagonal,.2),false);assert.equal(aimShots.enemies[0].hits,1);
 console.log('PASS: aimed diagonal shots maintain speed and swept enemy collisions');
 
-const highSky=new Game(data);highSky.continuous=true;highSky.skyHeight=160;highSky.scene=2;highSky.x=50;highSky.y=0;highSky.move(0,-300);assert.equal(highSky.worldPosition().y,-160);highSky.move(300,0);assert.equal(highSky.worldPosition().y,-160);highSky.enemySpawnRemaining=9999;highSky.setEnemyBridgeChance(0);highSky.spawnEnemy();assert.equal(highSky.enemies[0].y,-174);assert.equal(highSky.enemies[0].arrivalY,-160);highSky.aimedShot(350,-100,{aimX:0,aimY:-1},true);assert.ok(highSky.advanceShot(highSky.shots[0],.1));
+const highSky=new Game(data);highSky.continuous=true;highSky.skyHeight=160;highSky.scene=2;highSky.x=50;highSky.y=0;highSky.move(0,-300);assert.equal(highSky.worldPosition().y,-160);highSky.move(300,0);assert.equal(highSky.worldPosition().y,-160);highSky.enemySpawnRemaining=9999;highSky.setEnemyBridgeChance(0);highSky.spawnEnemy();assert.equal(highSky.enemies[0].y,-174);assert.equal(highSky.enemies[0].arrivalY,-160);highSky.aimedShot(350,-100,{aimX:1,aimY:-1},true);assert.ok(highSky.advanceShot(highSky.shots[0],.1));
 const skyMouse=new MouseJoystick();skyMouse.world=true;skyMouse.skyHeight=160;skyMouse.move(420,160,{left:0,top:0,width:840,height:422});assert.equal(skyMouse.targetY,0);
 console.log('PASS: extra sky permits flight, world seam crossing, spawns, upward shots and accurate mouse targeting');
+
+const verticalBlock=new Game(data);for(const y of [-1,1]){assert.equal(verticalBlock.aimedShot(100,100,{aimX:0,aimY:y},true),false);assert.equal(verticalBlock.aimedShot(100,100,{aimX:.1,aimY:y},true),false);assert.equal(verticalBlock.aimedShot(100,100,{aimX:1,aimY:y},true),true);}assert.equal(verticalBlock.shots.length,2);
+console.log('PASS: vertical and near-vertical aiming is blocked while diagonals remain available');
