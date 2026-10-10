@@ -4,7 +4,7 @@
 class FpsRoom {
  constructor(game){
   this.game=game;game.fpsInterior=true;this.active=false;this.bullets=[];this.effects=[];this.cooldown=0;this.flash=0;this.recoil=0;this.hitMarker=0;this.lookY=0;
-  this.exit={x:3,z:2,level:0,label:'TOIT',world:{x:519,y:31,floor:45}};this.sideExit={x:20,z:9,level:2,label:'PLATEFORME',world:{x:670,y:71,floor:85}};this.exits=[this.exit,this.sideExit];this.computer={x:19,z:15,level:6};
+  this.exit={x:3,z:2,level:0,label:'TOIT',world:{x:519,y:31,floor:45}};this.sideExit={x:3,z:6,level:2,label:'PLATEFORME',world:{x:542,y:71,floor:85}};this.exits=[this.exit,this.sideExit];this.computer={x:19,z:15,level:6};
   this.maps=Array.from({length:7},(_,level)=>this.makeMap(level));
  }
  makeMap(level){
@@ -35,7 +35,7 @@ class FpsRoom {
  }
  enter(){
   const p=this.game.pilot;if(!p)return;
-  const sideEntry=p.fpsEntry==='side'||(!p.fps&&p.x>640&&p.floor===101);
+  const sideEntry=p.fpsEntry==='side'||(!p.fps&&p.x>=540&&p.floor===101);
   const level=sideEntry?2:Math.max(0,Math.min(6,Math.round(((p.floor??p.y+14)-62)/13)));
   delete p.fpsEntry;
   const entry=sideEntry?{x:this.sideExit.x-1,z:this.sideExit.z}:level?this.downStair(level-1):{x:3,z:3};
