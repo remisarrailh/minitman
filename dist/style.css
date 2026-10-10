@@ -34,3 +34,5 @@ body.game-fullscreen{overflow:hidden}
 body.panorama .game-stage #overlay{inset:0}
 
 html:not(.dev-mode) [data-dev]{display:none!important}
+
+body.fps-mode .scene-labels{display:none}body.fps-mode #game{cursor:crosshair;touch-action:none}

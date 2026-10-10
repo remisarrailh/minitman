@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "build": "node scripts/build-dist.cjs",
-    "test": "node scripts/test-web.cjs",
+    "test": "node scripts/test-web.cjs && node scripts/test-fps.cjs",
     "serve": "python -m http.server 8765"
   }
 }

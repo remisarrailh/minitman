@@ -1,6 +1,6 @@
 const fs=require('node:fs'),path=require('node:path');
 const root=path.resolve(__dirname,'..'),out=path.join(root,'dist');
-const files=['index.html','style.css','app.js','core.js','mouse.js','assets.js','asset-paths.js','animations.html','animations.js','zones.html','zones.js'];
+const files=['index.html','style.css','app.js','fps.js','core.js','mouse.js','assets.js','asset-paths.js','animations.html','animations.js','zones.html','zones.js'];
 fs.mkdirSync(out,{recursive:true});
 for(const name of files)fs.copyFileSync(path.join(root,'web',name),path.join(out,name));
 fs.mkdirSync(path.join(out,'assets','themes'),{recursive:true});

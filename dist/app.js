@@ -4,6 +4,7 @@ document.documentElement.classList.toggle('dev-mode',new URLSearchParams(locatio
 const {Game,rowAddress,triple,pixelX}=MinitCore;
 const game=new Game(MINIT_ASSETS),$=s=>document.querySelector(s),canvas=$('#game'),ctx=canvas.getContext('2d');
 game.continuous=true;game.skyHeight=160;
+const fpsRoom=new FpsRoom(game);
 try{const saved=JSON.parse(localStorage.getItem("minitman-custom-zones"));if(saved&&Array.isArray(saved.collisions)&&Array.isArray(saved.teleports))game.customZones=saved;}catch{}
 const screen=document.createElement('canvas');screen.width=280;screen.height=192;const gfx=screen.getContext('2d');
 const palette=[[180,0,255],[0,210,40],[0,130,255],[255,120,0]];
@@ -215,7 +216,9 @@ function render(){
  for(const id of ['jump','crouch'])$('#'+id).hidden=!game.pilot;
  $('#cockpit').textContent=game.pilot?'Embarquer · E':'Sortir · E';
  ctx.restore();
- renderMagnifier(world);
+ if(fpsRoom.active){fpsRoom.render(ctx,canvas.width,canvas.height,sprites,scenes);$('#magnifier').hidden=true;}else renderMagnifier(world);
+ document.body.classList.toggle('fps-mode',fpsRoom.active);
+ if(!fpsRoom.active&&document.pointerLockElement===canvas)document.exitPointerLock();
  $('#scene').textContent=['LE PONT','LE BÂTIMENT','RAVITAILLEMENT'][game.scene-1];
  const sec=Math.ceil(game.time);$('#timer').textContent=`${Math.floor(sec/60)}:${String(sec%60).padStart(2,'0')}`;
  $('#score').textContent=String(game.score).padStart(3,'0');$('#lives').textContent=game.infiniteLives?'♥ ∞':'♥ '.repeat(game.lives)||'—';
@@ -230,18 +233,20 @@ function endOverlay(){
 }
 function frame(now){
  const dt=Math.min((now-last)/1000,.1);last=now;
- if(started&&!game.paused){accumulator+=dt;while(accumulator>=1/60){game.step(input());Object.keys(taps).forEach(k=>taps[k]=false);axisTap.x=axisTap.y=0;accumulator-=1/60;}}
+ if(started&&!game.paused){accumulator+=dt;while(accumulator>=1/60){fpsRoom.sync();
+ if(fpsRoom.active){const control={forward:(keys.has('KeyZ')||keys.has('ArrowUp')?1:0)-(keys.has('KeyS')||keys.has('ArrowDown')?1:0)-joy.y,strafe:(keys.has('KeyD')?1:0)-(keys.has('KeyQ')?1:0)+joy.x,turn:(keys.has('ArrowRight')?1:0)-(keys.has('ArrowLeft')?1:0),fire:Boolean(mouse.mask&1)||pointers.fire.size>0||taps.fire,crouch:keys.has('ControlLeft')||keys.has('ControlRight')||pointers.crouch.size>0,jump:keys.has('Space')||pointers.jump.size>0,interact:taps.interact||taps.cockpit};game.step({});fpsRoom.step(control,1/60);}else game.step(input());fpsRoom.sync();Object.keys(taps).forEach(k=>taps[k]=false);axisTap.x=axisTap.y=0;accumulator-=1/60;}}
  else accumulator=0;
  for(const event of game.events.splice(0))tone(event);
  render();if(started&&(game.ended))endOverlay();requestAnimationFrame(frame);
 }
-function start(){if(!artworkReady){game.notice='Chargement des images…';return false;}game.reset();clearInput();started=true;$('#overlay').hidden=true;$('#pause').textContent='Pause';last=performance.now();accumulator=0;canvas.focus({preventScroll:true});return true;}
+function start(){if(!artworkReady){game.notice='Chargement des images…';return false;}game.reset();fpsRoom.active=false;fpsRoom.bullets=[];clearInput();started=true;$('#overlay').hidden=true;$('#pause').textContent='Pause';last=performance.now();accumulator=0;canvas.focus({preventScroll:true});return true;}
 function pause(){if(!started||game.ended)return;game.paused=!game.paused;clearInput();$('#pause').textContent=game.paused?'Reprendre':'Pause';$('#notice').textContent=game.paused?'Partie en pause':game.notice;}
 $('#cockpit').onclick=()=>{if(started&&!game.paused)taps.cockpit=true;};
 $('#start').onclick=start;$('#new').onclick=start;$('#pause').onclick=pause;
-$('.display').addEventListener('click',()=>{
+$('.display').addEventListener('click',e=>{
  if(!started||game.ended)start();
  else if(game.paused){pause();canvas.focus({preventScroll:true});}
+ if(fpsRoom.active&&e.target===canvas&&canvas.requestPointerLock)canvas.requestPointerLock()?.catch(()=>{});
 });
 $('#training').onclick=()=>{if(!start())return;Object.assign(game,{scene:1,x:156,y:79,carrying:'truss',time:266,notice:'Position vérifiée : appuyez sur C ou Poser pour fixer la pièce.'});};
 $('#bridge-attack-training').onclick=()=>{if(!started||game.ended){if(!start())return;}game.spawnEnemy(true);};
@@ -266,6 +271,7 @@ canvas.addEventListener('contextmenu',e=>{if(mouse.enabled)e.preventDefault();})
 function controlKey(e){return /^[zqsd]$/i.test(e.key)?'Key'+e.key.toUpperCase():e.code;}
 document.addEventListener('keydown',e=>{
  if(e.target instanceof HTMLInputElement)return;
+ if(fpsRoom.active){if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();if(!e.repeat&&e.code==='KeyE')taps.interact=true;if(!e.repeat&&(e.code==='Escape'||e.code==='KeyP'))pause();keys.add(controlKey(e));return;}
  if(e.target instanceof HTMLButtonElement&&['Enter','Space'].includes(e.code))return;
  if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Space'].includes(e.code))e.preventDefault();
  if(!e.repeat){if(e.code==='Escape'||e.code==='KeyP')pause();}
@@ -299,3 +305,10 @@ fullscreenButton.onclick=async e=>{
 document.addEventListener('fullscreenchange',fullscreenState);
 document.addEventListener('keydown',e=>{if(e.code==='Escape'&&gameDisplay.classList.contains('fullscreen-fallback')){gameDisplay.classList.remove('fullscreen-fallback');fullscreenState();}});
 $('#touch-cockpit').onclick=e=>{e.stopPropagation();if(started&&!game.paused){if(game.pilot&&Math.abs(game.pilot.x+7-428)<22&&Math.abs(game.pilot.y+14-140)<8)taps.interact=true;else taps.cockpit=true;}};
+
+$('#fps-training').onclick=()=>{if(!start())return;Object.assign(game,{scene:2,x:210,y:30,landed:true,pilot:{x:519,y:48,floor:62,inside:true,vy:0,facing:1,pose:'idle',animation:0}});game.enemies=[{x:668,y:126,state:1,hits:0,animation:0,action:'base',phase:'inside',fps:{x:14,z:8}},{x:668,y:126,state:1,hits:0,animation:0,action:'base',phase:'inside',fps:{x:9,z:11}}];fpsRoom.enter();};
+document.addEventListener('mousemove',e=>{if(fpsRoom.active&&!game.paused&&(document.pointerLockElement===canvas||e.target===canvas))fpsRoom.look(e.movementX,e.movementY);});
+let fpsTouch=null;
+canvas.addEventListener('pointerdown',e=>{if(fpsRoom.active&&e.pointerType!=='mouse'){fpsTouch={id:e.pointerId,x:e.clientX,y:e.clientY};canvas.setPointerCapture(e.pointerId);}});
+canvas.addEventListener('pointermove',e=>{if(fpsTouch?.id===e.pointerId){fpsRoom.look(e.clientX-fpsTouch.x,e.clientY-fpsTouch.y);fpsTouch.x=e.clientX;fpsTouch.y=e.clientY;}});
+canvas.addEventListener('pointerup',e=>{if(fpsTouch?.id===e.pointerId)fpsTouch=null;});

@@ -20,7 +20,7 @@
    if(Number.isFinite(value))this.jumpHeightPercent=Math.round(Math.max(10,Math.min(400,value))*10)/10;
    return this.jumpHeightPercent;
   }
-  reset(){Object.assign(this,{scene:1,x:112,y:1,orientation:2,trusses:6,beams:4,bridgeDamage:{truss:[],beam:[]},score:0,lives:5,time:300,tick:0,carrying:null,falls:[],shots:[],enemyShots:[],explosions:[],mines:[],bonuses:[],enemies:[],enemySpawnRemaining:this.enemySpawnSeconds*(.5+this.random()),cooldown:0,invincible:0,paused:false,ended:false,completed:false,won:false,computerHits:0,respawnRemaining:0,respawnPilot:null,train:null,trainDelay:0,missileSlots:['empty','empty','empty'],launchedMissiles:0,launching:[],interactHeld:false,previous:{},landed:false,pilot:null,stock:[10,20,10],heights:[89,89,90],notice:'Direction le ravitaillement, à droite →',events:[]});}
+  reset(){Object.assign(this,{scene:1,x:112,y:1,orientation:2,trusses:6,beams:4,bridgeDamage:{truss:[],beam:[]},score:0,lives:5,time:300,tick:0,carrying:null,falls:[],shots:[],enemyShots:[],explosions:[],mines:[],bonuses:[],enemies:[],enemySpawnRemaining:this.enemySpawnSeconds*(.5+this.random()),cooldown:0,invincible:0,paused:false,ended:false,completed:false,won:false,computerHits:0,respawnRemaining:0,respawnPilot:null,fpsActive:false,train:null,trainDelay:0,missileSlots:['empty','empty','empty'],launchedMissiles:0,launching:[],interactHeld:false,previous:{},landed:false,pilot:null,stock:[10,20,10],heights:[89,89,90],notice:'Direction le ravitaillement, à droite →',events:[]});}
   emit(type){this.events.push(type);}
   worldPosition(){return {x:(this.scene-1)*280+this.x,y:this.y+(this.scene===1?70:0)};}
   piecePosition(){return triple(this.x+3,this.y+13);}
@@ -200,6 +200,7 @@
     }
     if(e.action!=='base')continue;
     if(e.phase==='inside'){
+     if(this.fpsActive)continue;
      const target=e.y<126-.01?{x:e.x,y:126}:{x:421,y:126},dx=target.x-e.x,dy=target.y-e.y,d=Math.hypot(dx,dy),step=Math.min(d,20*dt);
      if(d)this.moveEnemy(e,e.x+dx/d*step,e.y+dy/d*step);
      if(e.x<=432&&e.x+14>=420&&Math.abs(e.y-126)<1){this.destroyEnemy(e);this.computerHits++;this.notice='Ordinateur touché — '+this.computerHits+'/'+this.computerHitLimit;if(this.computerHits>=this.computerHitLimit){this.ended=true;this.notice='Fin de partie — ordinateur détruit';}}
@@ -251,6 +252,7 @@
    this.emit('crash');return true;
   }
   stepCombat(dt){
+   if(this.fpsActive){this.explosions.forEach(e=>e.age+=dt);this.explosions=this.explosions.filter(e=>e.age<.5);return;}
    const overlap=(a,b)=>a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;
    const w=this.worldPosition(),p=this.pilot,player=p?{x:p.x+3,y:p.y+4,w:10,h:10}:{x:w.x+3,y:w.y+3,w:34,h:11};
    for(const e of [...this.enemies]){
@@ -395,6 +397,7 @@
    return atFloor&&stops.some(t=>Math.abs(p.x+7-t.x)<=14&&Math.abs(p.y-(t.y-14))<1);
   }
   stepPilot(input,dt){
+   if(this.fpsActive)return;
    const p=this.pilot,floor=this.pilotFloor(p);
    p.previousX=p.x;p.previousY=p.y;
    const up=Boolean(input.up),down=Boolean(input.down),edge=(up&&!p.upHeld)||(down&&!p.downHeld);

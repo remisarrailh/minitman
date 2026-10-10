@@ -22,3 +22,9 @@ GitHub Pages est publié automatiquement depuis `dist` sur chaque push de `main`
 Ce dépôt contient uniquement le portage web. Il n’inclut ni disquette, ni exécutable original, ni désassemblage, ni manuel.
 
 Bouton « Plein écran » dans le jeu. Les contrôles tactiles sont superposés sur les appareils à écran tactile. Ajouter `?dev=true` à l’URL pour afficher les sliders de réglage.
+
+## Intérieur FPS expérimental
+
+Entrer à pied dans le bâtiment bascule dans une grande salle en première personne. Le bouton « Essai FPS » permet de tester directement avec deux robots. Z/S avancent et reculent, Q/D déplacent latéralement, souris pour viser, clic gauche pour tirer, Espace pour sauter, Ctrl pour s’accroupir et E pour activer l’ordinateur ou revenir sur le toit près de la sortie bleue. Cliquer dans la vue capture la souris lorsque le navigateur le permet ; les flèches gauche/droite permettent aussi de tourner. Sur mobile, glisser sur la vue pour regarder.
+
+Les piliers arrêtent les tirs ennemis. Les robots gardent trois états, attaquent l’ordinateur et laissent une mine à leur destruction. L’espace FPS utilise une carte indépendante des étages 2D et des zones dessinées dans l’éditeur. C’est un prototype de gameplay, pas encore une reproduction 3D de chaque étage.
