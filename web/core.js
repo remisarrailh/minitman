@@ -357,9 +357,13 @@
    }
   }
   fpsEntrance(p=this.pilot){
-   if(!this.fpsInterior||!p||p.inside||p.elevator||p.vy!==0)return null;
-   if(Math.abs(p.x+7-527)<=24&&Math.abs(p.y-31)<2)return 'roof';
-   if(Math.abs(p.x+7-686)<=30&&Math.abs(p.y-71)<2)return 'side';
+   if(!this.fpsInterior||!p||p.inside||p.elevator||Math.abs(p.vy||0)>.01)return null;
+   const feet=p.y+14;
+   for(const entry of [{name:'roof',x:527,floor:45},{name:'side',x:686,floor:85}]){
+    if(Math.abs(p.x+7-entry.x)>34||Math.abs(feet-entry.floor)>12)continue;
+    const surface=this.pilotFloor(p);
+    if(Math.abs(feet-surface)<=1.5)return entry.name;
+   }
    return null;
   }
   cockpit(){

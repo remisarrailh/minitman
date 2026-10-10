@@ -223,7 +223,7 @@ function render(){
  $('#scene').textContent=['LE PONT','LE BÂTIMENT','RAVITAILLEMENT'][game.scene-1];
  const sec=Math.ceil(game.time);$('#timer').textContent=`${Math.floor(sec/60)}:${String(sec%60).padStart(2,'0')}`;
  $('#score').textContent=String(game.score).padStart(3,'0');$('#lives').textContent=game.infiniteLives?'♥ ∞':'♥ '.repeat(game.lives)||'—';
- $('#notice').textContent=game.paused?'Partie en pause':game.notice;$('#missile-progress').textContent='Missiles : '+game.launchedMissiles+'/3 · Ordi : '+game.computerHits+'/'+game.computerHitLimit+' · prêts : '+game.missileSlots.filter(s=>s==='loaded').length;
+ $('#notice').textContent=game.paused?'Partie en pause':game.fpsEntrance()?'E · Entrer dans la base ('+(game.fpsEntrance()==='roof'?'accès du toit':'étage 3')+')':game.notice;$('#missile-progress').textContent='Missiles : '+game.launchedMissiles+'/3 · Ordi : '+game.computerHits+'/'+game.computerHitLimit+' · prêts : '+game.missileSlots.filter(s=>s==='loaded').length;
  $('#progress').textContent=`Pont : ${game.trusses-game.bridgeDamage.truss.length}/9 triangles · ${game.beams-game.bridgeDamage.beam.length}/8 poutres${game.carrying?' · AU TREUIL':''}`;
 }
 function endOverlay(){
