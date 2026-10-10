@@ -356,10 +356,18 @@
     this.y=y;this.landed=true;this.notice='Hélico posé — E / Sortir pour quitter le cockpit. Haut pour décoller.';
    }
   }
+  fpsEntrance(p=this.pilot){
+   if(!this.fpsInterior||!p||p.inside||p.elevator||p.vy!==0)return null;
+   if(Math.abs(p.x+7-527)<=24&&Math.abs(p.y-31)<2)return 'roof';
+   if(Math.abs(p.x+7-686)<=30&&Math.abs(p.y-71)<2)return 'side';
+   return null;
+  }
   cockpit(){
    if(!this.continuous)return false;
    const w=this.worldPosition();
    if(this.pilot){
+    const entry=this.fpsEntrance();
+    if(entry){const p=this.pilot;p.fpsEntry=entry;p.inside=true;p.floor=entry==='side'?88:62;p.y=p.floor-14;p.previousY=p.y;p.vy=0;p.pose='idle';delete p.fallOriginY;this.notice='Entrée dans la base';return true;}
     if(Math.hypot(this.pilot.x-(w.x+21),this.pilot.y-(w.y+1))>35){this.notice='Revenez près de l’hélico pour embarquer.';return false;}
     this.pilot=null;this.notice='À bord — dirigez-vous vers le haut pour décoller.';return true;
    }
@@ -415,20 +423,19 @@
     return;
    }
    const entrance=Math.abs(p.x+7-686)<30&&Math.abs(p.y-(85-14))<1;
-   if(this.fpsInterior&&entrance&&edge&&down){p.x=670;p.previousX=p.x;p.inside=true;p.floor=88;p.y=74;p.fpsEntry='side';p.vy=0;p.pose='idle';return;}
    let atCustomLift=false;
-   if(this.customZones){
+   if(this.customZones&&(!this.fpsInterior||p.inside)){
     // Include the feet on the zone boundary, where thin floor-level lifts sit.
     const touches=z=>p.vy===0&&p.x+7>=z.x&&p.x+7<=z.x+z.w&&p.y+14>=z.y-1&&p.y+14<=z.y+z.h+1;
     atCustomLift=up&&this.customZones.teleports.some(z=>z.trigger!=='down'&&touches(z));
     const zone=this.customZones.teleports.find(z=>edge&&(z.trigger==='both'?(up!==down):z.trigger==='up'?up:down)&&touches(z));
     if(zone){delete p.fallOriginY;const beforeY=p.y;if(Number.isFinite(this.customZones.teleportDistance)){p.y=Math.max(0,Math.min(248,p.y+(zone.trigger==='down'||zone.trigger==='both'&&down?1:-1)*this.customZones.teleportDistance));}else{p.x=zone.toX;p.y=zone.toY;}p.previousX=p.x;p.previousY=p.y;p.floor=p.y+14;p.inside=true;p.vy=0;p.pose='idle';p.jumpHeld=Boolean(input.jump);if(p.y>beforeY)this.invincible=Math.max(this.invincible,1+dt);return;}
    }
-   if(!this.customZones&&edge&&Math.abs(p.x+7-686)<30){
+   if(!this.fpsInterior&&!this.customZones&&edge&&Math.abs(p.x+7-686)<30){
     if(entrance&&down){p.x=670;p.previousX=p.x;p.inside=true;p.floor=101;p.y=87;p.vy=0;p.pose='idle';return;}
     if(p.inside&&p.floor===101&&up){p.inside=false;p.floor=85;p.y=71;p.vy=0;p.pose='idle';return;}
    }
-   const atLift=!this.customZones&&this.pilotElevator(p);
+   const atLift=(!this.fpsInterior||p.inside)&&!this.customZones&&this.pilotElevator(p);
    if(edge&&atLift){
     const levels=[45,62,75,88,101,114,127,140],current=levels.indexOf(floor),next=current+(down?1:-1);
     if(next>=0&&next<levels.length){
