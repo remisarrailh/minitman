@@ -55,7 +55,7 @@ class FpsRoom {
   const target=level<6?this.downStair(level):this.computer;
   const entry=level?this.downStair(level-1):{x:3,z:3};
   const right=level<2?513:668;
-  return {entry,target,from:level===0?519:level%2?421:right,to:level%2?right:421,length:Math.hypot(target.x-entry.x,target.z-entry.z)};
+  return {entry,target,from:level===0?519:level%2?421:level===2?513:668,to:level%2?right:421,length:Math.hypot(target.x-entry.x,target.z-entry.z)};
  }
  project(pos){
   const level=pos.level||0,f=this.projectionFrame(level),distance=Math.hypot(pos.x-f.target.x,pos.z-f.target.z);
