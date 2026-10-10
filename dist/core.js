@@ -199,9 +199,9 @@
      continue;
     }
     if(e.action!=='base')continue;
-    if(this.fpsActive&&e.y>=48&&['walking','aligning','descending'].includes(e.phase)){e.phase='inside';e.fps={x:4,z:3,level:0};continue;}
+    if(this.fpsInterior&&e.y>=48&&['walking','aligning','descending'].includes(e.phase)){e.phase='inside';continue;}
     if(e.phase==='inside'){
-     if(this.fpsActive)continue;
+     if(this.fpsInterior)continue;
      const target=e.y<126-.01?{x:e.x,y:126}:{x:421,y:126},dx=target.x-e.x,dy=target.y-e.y,d=Math.hypot(dx,dy),step=Math.min(d,20*dt);
      if(d)this.moveEnemy(e,e.x+dx/d*step,e.y+dy/d*step);
      if(e.x<=432&&e.x+14>=420&&Math.abs(e.y-126)<1){this.destroyEnemy(e);this.computerHits++;this.notice='Ordinateur touché — '+this.computerHits+'/'+this.computerHitLimit;if(this.computerHits>=this.computerHitLimit){this.ended=true;this.notice='Fin de partie — ordinateur détruit';}}
@@ -235,7 +235,7 @@
   destroyEnemy(e,dropMine=false){
    const inBase=['walking','descending','inside'].includes(e.phase)||e.action===undefined&&e.y>=45;
    this.explosions.push({x:e.x,y:e.y,age:0});
-   if(dropMine&&inBase){const mine={x:e.x,y:e.y+14};this.clearMineFromTeleport(mine);this.mines.push(mine);}
+   if(dropMine&&inBase){const mine={x:e.x,y:e.y+14,...(e.fps?{fps:{...e.fps}}:{})};this.clearMineFromTeleport(mine);this.mines.push(mine);}
    this.enemies=this.enemies.filter(other=>other!==e);
   }
   hurtPlayer(cause='combat'){
@@ -274,12 +274,14 @@
     }return shot.x>=0&&shot.x<=840;
    });
    this.bonuses=this.bonuses.filter(b=>{
+    if(b.fps)return true;
     const box={x:b.x,y:b.y-10,w:14,h:10};
     if(this.pilot&&overlap(box,{x:this.pilot.x+3,y:this.pilot.y+4,w:10,h:10})){this.lives++;this.notice='Bonus : une vie gagnée';return false;}
     const enemy=this.enemies.find(e=>overlap(box,{x:e.x+2,y:e.y+4,w:11,h:11}));if(enemy){enemy.canShoot=false;return false;}return true;
    });
    if(this.pilot){const p=this.pilot;p.mineGrace=p.vy!==0?.18:Math.max(0,(p.mineGrace||0)-dt);}
    this.mines=this.mines.filter(m=>{
+    if(m.fps)return true;
     this.clearMineFromTeleport(m);
     const box={x:m.x,y:m.y-1,w:3,h:1};
     const enemy=this.enemies.find(e=>overlap(box,{x:e.x+3,y:e.y+12,w:8,h:3}));
@@ -297,7 +299,7 @@
    if(!this.continuous)return false;
    const e=this.enemies.find(e=>shot.x+4>=e.x+2&&shot.x<=e.x+13&&shot.y>=e.y+2&&shot.y<e.y+13);
    if(!e)return false;
-   e.hits++;e.animation=0;
+   e.hits++;e.animation=0;if(e.fps){e.hitFlash=.22;e.hitStun=.16;}
    if(e.hits>=3)this.destroyEnemy(e,true);else e.state=e.hits+1;
    this.emit('hit');this.notice=e.hits>=3?'Robot détruit':'Robot touché — état '+e.state;return true;
   }

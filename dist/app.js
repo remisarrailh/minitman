@@ -5,6 +5,7 @@ const {Game,rowAddress,triple,pixelX}=MinitCore;
 const game=new Game(MINIT_ASSETS),$=s=>document.querySelector(s),canvas=$('#game'),ctx=canvas.getContext('2d');
 game.continuous=true;game.skyHeight=160;game.fpsInterior=true;
 const fpsRoom=new FpsRoom(game);
+let fpsDebug=false;const debugWorld=document.createElement('canvas');const debugCtx=debugWorld.getContext('2d');
 try{const saved=JSON.parse(localStorage.getItem("minitman-custom-zones"));if(saved&&Array.isArray(saved.collisions)&&Array.isArray(saved.teleports))game.customZones=saved;}catch{}
 const screen=document.createElement('canvas');screen.width=280;screen.height=192;const gfx=screen.getContext('2d');
 const palette=[[180,0,255],[0,210,40],[0,130,255],[255,120,0]];
@@ -216,7 +217,7 @@ function render(){
  for(const id of ['jump','crouch'])$('#'+id).hidden=!game.pilot;
  $('#cockpit').textContent=game.pilot?'Embarquer · E':'Sortir · E';
  ctx.restore();
- if(fpsRoom.active){fpsRoom.render(ctx,canvas.width,canvas.height,sprites,scenes);$('#magnifier').hidden=true;}else renderMagnifier(world);
+ if(fpsRoom.active||fpsDebug){if(fpsDebug){debugWorld.width=canvas.width;debugWorld.height=canvas.height;debugCtx.drawImage(canvas,0,0);ctx.fillStyle='#000';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(debugWorld,0,0,canvas.width/2,canvas.height/2);ctx.save();ctx.translate(canvas.width/2,0);fpsRoom.renderInspection(ctx,canvas.width/2,canvas.height/2,sprites,scenes);ctx.restore();ctx.fillStyle='#9fffd0';ctx.font='22px monospace';ctx.fillText('DEBUG 2D · états partagés',12,28);if(fpsRoom.active)ctx.fillText('Joueur : étage '+(fpsRoom.player.level+1)+' · escalier '+fpsRoom.project(fpsRoom.player).distance.toFixed(1),12,canvas.height/2+28);for(const e of game.enemies.filter(e=>e.fps).slice(0,6)){ctx.fillText('Robot : étage '+(e.fps.level+1)+' · escalier '+fpsRoom.project(e.fps).distance.toFixed(1),12,canvas.height/2+60+game.enemies.indexOf(e)*28);}}else fpsRoom.render(ctx,canvas.width,canvas.height,sprites,scenes);$('#magnifier').hidden=true;}else renderMagnifier(world);
  document.body.classList.toggle('fps-mode',fpsRoom.active);
  if(!fpsRoom.active&&document.pointerLockElement===canvas)document.exitPointerLock();
  $('#scene').textContent=['LE PONT','LE BÂTIMENT','RAVITAILLEMENT'][game.scene-1];
@@ -234,7 +235,7 @@ function endOverlay(){
 function frame(now){
  const dt=Math.min((now-last)/1000,.1);last=now;
  if(started&&!game.paused){accumulator+=dt;while(accumulator>=1/60){fpsRoom.sync();
- if(fpsRoom.active){const control={forward:(keys.has('KeyZ')||keys.has('ArrowUp')?1:0)-(keys.has('KeyS')||keys.has('ArrowDown')?1:0)-joy.y,strafe:(keys.has('KeyD')?1:0)-(keys.has('KeyQ')?1:0)+joy.x,turn:(keys.has('ArrowRight')?1:0)-(keys.has('ArrowLeft')?1:0),fire:Boolean(mouse.mask&1)||pointers.fire.size>0||taps.fire,crouch:keys.has('ControlLeft')||keys.has('ControlRight')||pointers.crouch.size>0,jump:keys.has('Space')||pointers.jump.size>0,interact:taps.interact||taps.cockpit};game.step({});fpsRoom.step(control,1/60);}else game.step(input());fpsRoom.sync();Object.keys(taps).forEach(k=>taps[k]=false);axisTap.x=axisTap.y=0;accumulator-=1/60;}}
+ if(fpsRoom.active){const control={forward:(keys.has('KeyZ')||keys.has('ArrowUp')?1:0)-(keys.has('KeyS')||keys.has('ArrowDown')?1:0)-joy.y,strafe:(keys.has('KeyD')?1:0)-(keys.has('KeyQ')?1:0)+joy.x,turn:(keys.has('ArrowRight')?1:0)-(keys.has('ArrowLeft')?1:0),fire:Boolean(mouse.mask&1)||pointers.fire.size>0||taps.fire,crouch:keys.has('ControlLeft')||keys.has('ControlRight')||pointers.crouch.size>0,jump:keys.has('Space')||pointers.jump.size>0,interact:taps.interact||taps.cockpit};game.step({});fpsRoom.step(control,1/60);}else{game.step(input());fpsRoom.step({},1/60);}fpsRoom.sync();Object.keys(taps).forEach(k=>taps[k]=false);axisTap.x=axisTap.y=0;accumulator-=1/60;}}
  else accumulator=0;
  for(const event of game.events.splice(0))tone(event);
  render();if(started&&(game.ended))endOverlay();requestAnimationFrame(frame);
@@ -258,7 +259,7 @@ $('#help').onclick=()=>{const d=$('#instructions');d.open=!d.open;$('#help').set
 function mouseLabel(){const b=$('#mouse');b.textContent=`Souris : ${mouse.enabled?'oui':'non'}`;b.setAttribute('aria-pressed',String(mouse.enabled));canvas.classList.toggle('mouse-control',mouse.enabled);}
 $('#mouse').onclick=()=>{mouse.enabled=!mouse.enabled;clearInput();mouseLabel();};mouseLabel();
 canvas.width=1680;canvas.height=(262+game.skyHeight)*2;document.body.classList.add('panorama');document.documentElement.style.setProperty('--world-height',String(262+game.skyHeight));
-function controlRect(){return canvas.getBoundingClientRect();}
+function controlRect(){const r=canvas.getBoundingClientRect();return fpsDebug&&!fpsRoom.active?{left:r.left,top:r.top,width:r.width/2,height:r.height/2}:r;}
 function mouseButtons(mask){const edge=mouse.buttons(mask,game.carrying);if(edge.drop){taps.fire=taps.turn=false;taps.drop=true;}else if(edge.fire)taps.fire=true;}
 canvas.addEventListener('mousemove',e=>{if(!started||game.paused)return;mouse.move(e.clientX,e.clientY,controlRect());mouseButtons(e.buttons);});
 // mousedown is needed: pointerdown is not emitted for the second mouse button.
@@ -312,3 +313,5 @@ let fpsTouch=null;
 canvas.addEventListener('pointerdown',e=>{if(fpsRoom.active&&e.pointerType!=='mouse'){fpsTouch={id:e.pointerId,x:e.clientX,y:e.clientY};canvas.setPointerCapture(e.pointerId);}});
 canvas.addEventListener('pointermove',e=>{if(fpsTouch?.id===e.pointerId){fpsRoom.look(e.clientX-fpsTouch.x,e.clientY-fpsTouch.y);fpsTouch.x=e.clientX;fpsTouch.y=e.clientY;}});
 canvas.addEventListener('pointerup',e=>{if(fpsTouch?.id===e.pointerId)fpsTouch=null;});
+
+$('#fps-debug').onclick=()=>{fpsDebug=!fpsDebug;$('#fps-debug').setAttribute('aria-pressed',String(fpsDebug));$('#fps-debug').textContent='Debug 2D + FPS : '+(fpsDebug?'oui':'non');};

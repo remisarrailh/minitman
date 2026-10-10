@@ -3,7 +3,7 @@
 'use strict';
 class FpsRoom {
  constructor(game){
-  this.game=game;this.active=false;this.bullets=[];this.effects=[];this.cooldown=0;this.flash=0;this.recoil=0;this.hitMarker=0;this.lookY=0;
+  this.game=game;game.fpsInterior=true;this.active=false;this.bullets=[];this.effects=[];this.cooldown=0;this.flash=0;this.recoil=0;this.hitMarker=0;this.lookY=0;
   this.exit={x:3,z:2,level:0,label:'TOIT',world:{x:519,y:31,floor:45}};this.sideExit={x:20,z:9,level:2,label:'PLATEFORME',world:{x:670,y:71,floor:85}};this.exits=[this.exit,this.sideExit];this.computer={x:19,z:15,level:6};
   this.maps=Array.from({length:7},(_,level)=>this.makeMap(level));
  }
@@ -50,10 +50,33 @@ class FpsRoom {
  }
  sync(){const p=this.game.pilot;if(!p){this.active=false;this.game.fpsActive=false;return;}if(!this.active&&!p.elevator&&p.inside&&p.y>=44)this.enter();}
  look(dx,dy){if(!this.active)return;this.player.yaw+=dx*.003;this.lookY=Math.max(-.5,Math.min(.5,this.lookY+dy*.002));}
- enemyPosition(e){
-  if(!e.fps){const level=Math.max(0,Math.min(6,Math.round((e.y-48)/13))),entry=level?this.downStair(level-1):{x:3,z:3};e.fps={x:entry.x+1,z:entry.z,level};}
-  e.fps.level??=0;return e.fps;
+ floorY(level){return 48+level*13;}
+ projectionFrame(level){
+  const target=level<6?this.downStair(level):this.computer;
+  const entry=level?this.downStair(level-1):{x:3,z:3};
+  const right=level<2?513:668;
+  return {entry,target,from:level===0?519:level%2?421:right,to:level%2?right:421,length:Math.hypot(target.x-entry.x,target.z-entry.z)};
  }
+ project(pos){
+  const level=pos.level||0,f=this.projectionFrame(level),distance=Math.hypot(pos.x-f.target.x,pos.z-f.target.z);
+  const progress=Math.max(0,Math.min(1,1-distance/f.length));
+  return {x:f.from+(f.to-f.from)*progress,y:this.floorY(level),floor:this.floorY(level)+14,distance,progress};
+ }
+ unproject(x,y){
+  const level=Math.max(0,Math.min(6,Math.round((y-48)/13))),f=this.projectionFrame(level);
+  const progress=Math.max(0,Math.min(1,(x-f.from)/(f.to-f.from)));
+  let pos={x:f.entry.x+(f.target.x-f.entry.x)*progress,z:f.entry.z+(f.target.z-f.entry.z)*progress,level};
+  if(!this.clear(pos.x,pos.z,.23,level)){
+   let best=Infinity;for(let z=1;z<18;z++)for(let a=1;a<22;a++)if(this.clear(a+.5,z+.5,.23,level)){const d=Math.hypot(a+.5-pos.x,z+.5-pos.z);if(d<best){best=d;pos={x:a+.5,z:z+.5,level};}}
+  }
+  return pos;
+ }
+ syncWorld(){
+  for(const e of this.game.enemies)if(e.phase==='inside'&&e.fps){const w=this.project(e.fps);e.x=w.x;e.y=w.y;}
+  if(this.active&&this.game.pilot){const p=this.game.pilot,w=this.project(this.player);p.previousX=p.x;p.previousY=p.y;Object.assign(p,{x:w.x,y:w.y-this.player.jump*8,floor:w.floor});}
+  for(const list of [this.game.mines,this.game.bonuses])for(const item of list)if(item.fps){const w=this.project(item.fps);item.x=w.x;item.y=w.floor;}
+ }
+ enemyPosition(e){if(!e.fps)e.fps=this.unproject(e.x,e.y);e.fps.level??=0;return e.fps;}
  shoot(){
   if(this.cooldown>0||this.transition)return false;
   this.cooldown=.22;this.flash=.1;this.recoil=1;this.game.emit('fire');
@@ -68,7 +91,7 @@ class FpsRoom {
   this.effects.push({x:p.x+dx*best,z:p.z+dz*best,level:p.level,kind:'spark',age:0});
   if(target){
    target.hits++;target.state=Math.min(3,target.hits+1);target.hitFlash=.22;target.hitStun=.16;this.hitMarker=.2;this.game.emit('hit');
-   if(target.hits>=3){const pos={...target.fps};this.effects.push({...pos,kind:'explosion',age:0});this.game.destroyEnemy(target,true);this.game.mines.at(-1).fps=pos;this.game.score+=20;}
+   if(target.hits>=3){const pos={...target.fps};this.effects.push({...pos,kind:'explosion',age:0});this.game.destroyEnemy(target,true);this.game.mines.at(-1).fps=pos;this.syncWorld();this.game.score+=20;}
   }
   return true;
  }
@@ -94,10 +117,11 @@ class FpsRoom {
   if(this.game.hurtPlayer()){if(this.game.bonuses.length>count)this.game.bonuses.at(-1).fps={x:this.player.x,z:this.player.z,level:this.player.level};return true;}return false;
  }
  step(input,dt){
-  this.sync();if(!this.active||this.game.paused||this.game.ended)return;
+  this.sync();if(this.game.paused||this.game.ended)return;
   const g=this.game,p=this.player;
   this.cooldown=Math.max(0,this.cooldown-dt);this.flash=Math.max(0,this.flash-dt);this.recoil=Math.max(0,this.recoil-dt*8);this.hitMarker=Math.max(0,this.hitMarker-dt);
   this.effects.forEach(e=>e.age+=dt);this.effects=this.effects.filter(e=>e.age<(e.kind==='explosion'?.5:.18));
+  if(this.active){
   if(this.transition){this.transition.remaining-=dt;g.invincible=Math.max(g.invincible,1+dt);if(this.transition.remaining<=0){this.finishStairs(this.transition.stair);this.transition=null;}}
   else{
    p.yaw+=(input.turn||0)*dt*1.8;
@@ -116,6 +140,8 @@ class FpsRoom {
    }
    this.interactHeld=input.interact;
   }
+  }
+  this.syncWorld();
   for(const e of [...g.enemies]){
    if(e.phase!=='inside')continue;
    const pos=this.enemyPosition(e);e.hitFlash=Math.max(0,(e.hitFlash||0)-dt);e.hitStun=Math.max(0,(e.hitStun||0)-dt);
@@ -127,7 +153,7 @@ class FpsRoom {
     if(pos.level<6){pos.level++;e.fpsPath=null;e.y=48+pos.level*13;}
     else{this.effects.push({...pos,kind:'explosion',age:0});g.destroyEnemy(e);g.computerHits++;g.notice='Ordinateur touché — '+g.computerHits+'/'+g.computerHitLimit;if(g.computerHits>=g.computerHitLimit){g.ended=true;g.notice='Fin de partie — ordinateur détruit';}continue;}
    }
-   if(pos.level!==p.level)continue;
+   if(!this.active||!g.pilot||pos.level!==p.level)continue;
    e.fpsFire=Math.max(0,(e.fpsFire??1.5)-dt);
    const px=p.x-pos.x,pz=p.z-pos.z,range=Math.hypot(px,pz);
    if(e.canShoot!==false&&e.fpsFire===0&&range>0&&this.ray(pos.x,pos.z,px/range,pz/range,pos.level).d>range){this.bullets.push({x:pos.x,z:pos.z,vx:px/range*6,vz:pz/range*6,level:pos.level});e.fpsFire=1.7;}
@@ -135,26 +161,32 @@ class FpsRoom {
   }
   this.bullets=this.bullets.filter(b=>{
    const n=Math.max(1,Math.ceil(6*dt/.1));
-   for(let i=0;i<n;i++){b.x+=b.vx*dt/n;b.z+=b.vz*dt/n;if(this.wall(b.x,b.z,b.level||0))return false;if((b.level||0)===p.level&&Math.hypot(b.x-p.x,b.z-p.z)<.28&&p.jump<.3&&!input.crouch&&!this.transition){this.killPlayer();return false;}}return true;
+   for(let i=0;i<n;i++){b.x+=b.vx*dt/n;b.z+=b.vz*dt/n;if(this.wall(b.x,b.z,b.level||0))return false;if(this.active&&g.pilot&&(b.level||0)===p.level&&Math.hypot(b.x-p.x,b.z-p.z)<.28&&p.jump<.3&&!input.crouch&&!this.transition){this.killPlayer();return false;}}return true;
   });
   g.mines=g.mines.filter(m=>{
    const pos=m.fps;if(!pos)return true;
    const e=g.enemies.find(e=>e.fps&&(e.fps.level||0)===(pos.level||0)&&Math.hypot(e.fps.x-pos.x,e.fps.z-pos.z)<.4);
    if(e){this.effects.push({...pos,kind:'explosion',age:0});g.destroyEnemy(e);return false;}
-   if((pos.level||0)===p.level&&p.jump===0&&!(p.mineGrace>0)&&!input.crouch&&!this.transition&&Math.hypot(p.x-pos.x,p.z-pos.z)<.25&&this.killPlayer())return false;
+   if(this.active&&g.pilot&&(pos.level||0)===p.level&&p.jump===0&&!(p.mineGrace>0)&&!input.crouch&&!this.transition&&Math.hypot(p.x-pos.x,p.z-pos.z)<.25&&this.killPlayer())return false;
    return true;
   });
   g.bonuses=g.bonuses.filter(b=>{
    if(!b.fps)return true;const level=b.fps.level||0;
-   if(level===p.level&&Math.hypot(p.x-b.fps.x,p.z-b.fps.z)<.5&&g.pilot){g.lives++;return false;}
+   if(this.active&&level===p.level&&Math.hypot(p.x-b.fps.x,p.z-b.fps.z)<.5&&g.pilot){g.lives++;return false;}
    const e=g.enemies.find(e=>e.fps&&(e.fps.level||0)===level&&Math.hypot(e.fps.x-b.fps.x,e.fps.z-b.fps.z)<.5);if(e){e.canShoot=false;return false;}return true;
-  });this.sync();
+  });this.syncWorld();this.sync();
  }
  makeArt(scenes){
   if(this.computerImage)return;
   this.computerImage=document.createElement('canvas');this.computerImage.width=14;this.computerImage.height=14;this.computerImage.getContext('2d').drawImage(scenes[1],139,128,14,14,0,0,14,14);
   this.stairImage=document.createElement('canvas');this.stairImage.width=32;this.stairImage.height=32;const c=this.stairImage.getContext('2d');
   for(let i=0;i<7;i++){c.fillStyle=i%2?'#708ca2':'#bed2df';c.fillRect(2+i*4,29-i*4,28-i*4,4);c.fillStyle='#263e52';c.fillRect(2+i*4,31-i*4,28-i*4,1);}
+ }
+ renderInspection(ctx,width,height,sprites,scenes){
+  if(this.active)return this.render(ctx,width,height,sprites,scenes);
+  const saved=this.player,look=this.lookY,level=this.game.enemies.find(e=>e.fps)?.fps.level||0;
+  this.player={x:3,z:3,level,yaw:Math.atan2(6,8),jump:0};this.lookY=0;
+  try{this.render(ctx,width,height,sprites,scenes);}finally{this.player=saved;this.lookY=look;}
  }
  render(ctx,width,height,sprites,scenes){
   const p=this.player;if(!p)return;const w=840,h=422;
