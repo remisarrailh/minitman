@@ -199,6 +199,7 @@
      continue;
     }
     if(e.action!=='base')continue;
+    if(this.fpsActive&&e.y>=48&&['walking','aligning','descending'].includes(e.phase)){e.phase='inside';e.fps={x:4,z:3,level:0};continue;}
     if(e.phase==='inside'){
      if(this.fpsActive)continue;
      const target=e.y<126-.01?{x:e.x,y:126}:{x:421,y:126},dx=target.x-e.x,dy=target.y-e.y,d=Math.hypot(dx,dy),step=Math.min(d,20*dt);

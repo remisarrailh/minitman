@@ -239,7 +239,7 @@ function frame(now){
  for(const event of game.events.splice(0))tone(event);
  render();if(started&&(game.ended))endOverlay();requestAnimationFrame(frame);
 }
-function start(){if(!artworkReady){game.notice='Chargement des images…';return false;}game.reset();fpsRoom.active=false;fpsRoom.bullets=[];clearInput();started=true;$('#overlay').hidden=true;$('#pause').textContent='Pause';last=performance.now();accumulator=0;canvas.focus({preventScroll:true});return true;}
+function start(){if(!artworkReady){game.notice='Chargement des images…';return false;}game.reset();fpsRoom.active=false;fpsRoom.bullets=[];fpsRoom.effects=[];fpsRoom.flash=0;fpsRoom.recoil=0;fpsRoom.hitMarker=0;fpsRoom.cooldown=0;clearInput();started=true;$('#overlay').hidden=true;$('#pause').textContent='Pause';last=performance.now();accumulator=0;canvas.focus({preventScroll:true});return true;}
 function pause(){if(!started||game.ended)return;game.paused=!game.paused;clearInput();$('#pause').textContent=game.paused?'Reprendre':'Pause';$('#notice').textContent=game.paused?'Partie en pause':game.notice;}
 $('#cockpit').onclick=()=>{if(started&&!game.paused)taps.cockpit=true;};
 $('#start').onclick=start;$('#new').onclick=start;$('#pause').onclick=pause;
@@ -306,7 +306,7 @@ document.addEventListener('fullscreenchange',fullscreenState);
 document.addEventListener('keydown',e=>{if(e.code==='Escape'&&gameDisplay.classList.contains('fullscreen-fallback')){gameDisplay.classList.remove('fullscreen-fallback');fullscreenState();}});
 $('#touch-cockpit').onclick=e=>{e.stopPropagation();if(started&&!game.paused){if(game.pilot&&Math.abs(game.pilot.x+7-428)<22&&Math.abs(game.pilot.y+14-140)<8)taps.interact=true;else taps.cockpit=true;}};
 
-$('#fps-training').onclick=()=>{if(!start())return;Object.assign(game,{scene:2,x:210,y:30,landed:true,pilot:{x:519,y:48,floor:62,inside:true,vy:0,facing:1,pose:'idle',animation:0}});game.enemies=[{x:668,y:126,state:1,hits:0,animation:0,action:'base',phase:'inside',fps:{x:14,z:8}},{x:668,y:126,state:1,hits:0,animation:0,action:'base',phase:'inside',fps:{x:9,z:11}}];fpsRoom.enter();};
+$('#fps-training').onclick=()=>{if(!start())return;Object.assign(game,{scene:2,x:210,y:30,landed:true,pilot:{x:519,y:48,floor:62,inside:true,vy:0,facing:1,pose:'idle',animation:0}});game.enemies=[{x:668,y:126,state:1,hits:0,animation:0,action:'base',phase:'inside',fps:{x:14,z:8,level:0}},{x:668,y:126,state:1,hits:0,animation:0,action:'base',phase:'inside',fps:{x:9,z:11,level:0}}];fpsRoom.enter();};
 document.addEventListener('mousemove',e=>{if(fpsRoom.active&&!game.paused&&(document.pointerLockElement===canvas||e.target===canvas))fpsRoom.look(e.movementX,e.movementY);});
 let fpsTouch=null;
 canvas.addEventListener('pointerdown',e=>{if(fpsRoom.active&&e.pointerType!=='mouse'){fpsTouch={id:e.pointerId,x:e.clientX,y:e.clientY};canvas.setPointerCapture(e.pointerId);}});
