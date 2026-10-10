@@ -7,7 +7,7 @@
  const pixelX=t=>t[0]*7+t[1];
  const FLIGHT_SPEED={x:84,y:51};
  class Game {
-  constructor(assets){this.assets=assets;this.speedPercent=100;this.pilotSpeedPercent=100;this.jumpHeightPercent=100;this.missilePadPositions=[{x:346,y:139},{x:356,y:133},{x:363,y:128}];this.infiniteLives=true;this.computerHitLimit=3;this.respawnSeconds=3;this.respawnInBase=false;this.enemyBridgeChance=25;this.enemySpawnSeconds=30;this.enemySafetyRadius=10;this.random=Math.random;this.continuous=false;this.reset();}
+  constructor(assets){this.assets=assets;this.speedPercent=100;this.pilotSpeedPercent=100;this.jumpHeightPercent=100;this.missilePadPositions=[{x:346,y:139},{x:356,y:133},{x:363,y:128}];this.infiniteLives=true;this.computerHitLimit=3;this.respawnSeconds=3;this.respawnInBase=false;this.enemyBridgeChance=25;this.enemySpawnSeconds=30;this.enemySafetyRadius=10;this.random=Math.random;this.continuous=false;this.skyHeight=0;this.reset();}
   setSpeedPercent(value){
    if(Number.isFinite(value))this.speedPercent=Math.round(Math.max(10,Math.min(400,value))*10)/10;
    return this.speedPercent;
@@ -134,7 +134,7 @@
    const p=this.pilot;
    if(p&&input.interact&&!this.interactHeld&&Math.abs(p.x+7-428)<22&&Math.abs(p.y+14-140)<8)this.launchMissile();
    this.interactHeld=Boolean(input.interact);
-   this.launching.forEach(m=>m.y-=90*dt);this.launching=this.launching.filter(m=>m.y>-30);
+   this.launching.forEach(m=>m.y-=90*dt);this.launching=this.launching.filter(m=>m.y>-this.skyHeight-30);
    if(this.launchedMissiles===3&&this.launching.length===0){this.won=true;this.ended=true;this.notice='Victoire — trois missiles lancés !';this.emit('complete');}
   }
   setEnemyBridgeChance(value){if(Number.isFinite(value))this.enemyBridgeChance=Math.max(0,Math.min(100,value));return this.enemyBridgeChance;}
@@ -158,7 +158,7 @@
    if(!safe.length)return false;
    const targets=this.bridgeTargets(),attack=(forceBridge||this.random()*100<this.enemyBridgeChance)&&targets.length>0;
    const bridgeTarget=attack?targets[Math.min(targets.length-1,Math.floor(this.random()*targets.length))]:null;
-   this.enemies.push({x:safe[Math.min(safe.length-1,Math.floor(this.random()*safe.length))],y:-14,state:1,hits:0,animation:0,action:attack?'bridge':'base',bridgeTarget,phase:'arrival',arrivalY:0});return true;
+   this.enemies.push({x:safe[Math.min(safe.length-1,Math.floor(this.random()*safe.length))],y:-this.skyHeight-14,state:1,hits:0,animation:0,action:attack?'bridge':'base',bridgeTarget,phase:'arrival',arrivalY:-this.skyHeight});return true;
   }
   enemyHitsWall(e,x,y){
    const indoors=['inside','walking','aligning'].includes(e.phase);
@@ -192,7 +192,7 @@
    for(const e of [...this.enemies]){
     e.animation+=dt;
     if(e.action==='bridge'){
-     const target=e.phase==='arrival'?{x:e.x,y:0}:e.phase==='attack-align'?{x:e.bridgeTarget.x,y:0}:{x:e.bridgeTarget.x,y:e.bridgeTarget.y-7};
+     const target=e.phase==='arrival'?{x:e.x,y:-this.skyHeight}:e.phase==='attack-align'?{x:e.bridgeTarget.x,y:-this.skyHeight}:{x:e.bridgeTarget.x,y:e.bridgeTarget.y-7};
      const dx=target.x-e.x,dy=target.y-e.y,d=Math.hypot(dx,dy),step=Math.min(d,(e.phase==='arrival'?120:75)*dt);
      if(d)this.moveEnemy(e,e.x+dx/d*step,e.y+dy/d*step);
      if(Math.hypot(target.x-e.x,target.y-e.y)<.01){if(e.phase==='arrival')e.phase='attack-align';else if(e.phase==='attack-align')e.phase='attack';else{this.damageBridge(e.bridgeTarget);this.destroyEnemy(e);}}
@@ -307,7 +307,7 @@
    const dx=(p.vx??p.v)*dt,dy=(p.vy||0)*dt,steps=Math.max(1,Math.ceil(Math.hypot(dx,dy)));
    if(this.shotHitsScenery(p.x,p.y)||this.shotHitsEnemy(p))return false;
    for(let i=0;i<steps;i++){p.x+=dx/steps;p.y+=dy/steps;if(this.shotHitsScenery(p.x,p.y)||this.shotHitsEnemy(p))return false;}
-   return p.x>-40&&p.x<(this.continuous?840:280)&&p.y>-40&&p.y<(this.continuous?262:192);
+   return p.x>-40&&p.x<(this.continuous?840:280)&&p.y>-this.skyHeight-40&&p.y<(this.continuous?262:192);
   }
   move(dx,dy){
    const steps=Math.max(1,Math.ceil(Math.max(Math.abs(dx),Math.abs(dy))));
@@ -319,7 +319,7 @@
     const wx=Math.max(0,Math.min(798,world.x+dx)),scene=Math.min(3,Math.floor(wx/280)+1);
     const x=wx-(scene-1)*280,y=world.y-(scene===1?70:0);
     if(!this.collidesAt(scene,x,y))Object.assign(this,{scene,x,y});
-    const nextY=Math.max(1,Math.min(230,world.y+dy))-(this.scene===1?70:0);
+    const nextY=Math.max(this.skyHeight?-this.skyHeight:1,Math.min(230,world.y+dy))-(this.scene===1?70:0);
     if(!this.collidesAt(this.scene,this.x,nextY))this.y=nextY;
     return;
    }

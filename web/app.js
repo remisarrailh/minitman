@@ -3,7 +3,7 @@
 document.documentElement.classList.toggle('dev-mode',new URLSearchParams(location.search).get('dev')==='true');
 const {Game,rowAddress,triple,pixelX}=MinitCore;
 const game=new Game(MINIT_ASSETS),$=s=>document.querySelector(s),canvas=$('#game'),ctx=canvas.getContext('2d');
-game.continuous=true;
+game.continuous=true;game.skyHeight=160;
 try{const saved=JSON.parse(localStorage.getItem("minitman-custom-zones"));if(saved&&Array.isArray(saved.collisions)&&Array.isArray(saved.teleports))game.customZones=saved;}catch{}
 const screen=document.createElement('canvas');screen.width=280;screen.height=192;const gfx=screen.getContext('2d');
 const palette=[[180,0,255],[0,210,40],[0,130,255],[255,120,0]];
@@ -69,7 +69,7 @@ $('#theme').onchange=async()=>{
 const keys=new Set(),pointers={fire:new Set(),turn:new Set(),drop:new Set(),jump:new Set(),crouch:new Set()},joy={x:0,y:0,pointer:null};
 const taps={fire:false,turn:false,drop:false,cockpit:false,interact:false,jump:false,crouch:false};
 const axisTap={x:0,y:0};
-const mouse=new MouseJoystick();mouse.world=true;mouse.enabled=matchMedia('(pointer: fine)').matches;
+const mouse=new MouseJoystick();mouse.world=true;mouse.skyHeight=game.skyHeight;mouse.enabled=matchMedia('(pointer: fine)').matches;
 let started=false,sound=false,audio,last=0,accumulator=0;
 function speedUI(value){
  const percent=game.setSpeedPercent(value);$('#speed-slider').value=String(percent);$('#speed-value').value=String(percent);
@@ -175,9 +175,9 @@ function renderMagnifier(world){
  lens.hidden=!near;if(!near)return;
  const zoom=view.getContext('2d');zoom.imageSmoothingEnabled=false;
  const sx=Math.max(0,Math.min(canvas.width-140,(world.x+21)*2-70));
- const sy=Math.max(0,Math.min(canvas.height-112,(world.y+17)*2-56));
+ const sy=Math.max(0,Math.min(canvas.height-112,(world.y+game.skyHeight+17)*2-56));
  zoom.drawImage(canvas,sx,sy,140,112,0,0,420,336);
- const scale=canvas.clientWidth/canvas.width,cx=(world.x+21)*2*scale,cy=(world.y+7)*2*scale;
+ const scale=canvas.clientWidth/canvas.width,cx=(world.x+21)*2*scale,cy=(world.y+game.skyHeight+7)*2*scale;
  const width=lens.offsetWidth,height=lens.offsetHeight;
  const left=Math.max(6,Math.min(canvas.clientWidth-width-6,cx+35));
  let top=cy-height-20;if(top<6)top=cy+25;
@@ -185,7 +185,7 @@ function renderMagnifier(world){
  lens.style.left=`${left}px`;lens.style.top=`${canvas.offsetTop+top}px`;
 }
 function render(){
- ctx.imageSmoothingEnabled=false;ctx.fillStyle='#000';ctx.fillRect(0,0,canvas.width,canvas.height);
+ ctx.imageSmoothingEnabled=false;ctx.fillStyle='#000';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.save();ctx.translate(0,game.skyHeight*2);
  for(let scene=1;scene<=3;scene++){drawScene(scene);ctx.drawImage(screen,(scene-1)*560,scene===1?140:0,560,384);}
  const world=game.worldPosition();
  function actor(type,x,y,alpha=1){const t=triple(x,y);ctx.globalAlpha=alpha;ctx.drawImage(sprites[type][t[1]],t[0]*14,t[2]*2,sprites[type][t[1]].width*2,sprites[type][t[1]].height*2);ctx.globalAlpha=1;}
@@ -214,6 +214,7 @@ function render(){
  }
  for(const id of ['jump','crouch'])$('#'+id).hidden=!game.pilot;
  $('#cockpit').textContent=game.pilot?'Embarquer · E':'Sortir · E';
+ ctx.restore();
  renderMagnifier(world);
  $('#scene').textContent=['LE PONT','LE BÂTIMENT','RAVITAILLEMENT'][game.scene-1];
  const sec=Math.ceil(game.time);$('#timer').textContent=`${Math.floor(sec/60)}:${String(sec%60).padStart(2,'0')}`;
@@ -251,7 +252,7 @@ $('#sound').onclick=()=>{sound=!sound;$('#sound').textContent=`Son : ${sound?'ou
 $('#help').onclick=()=>{const d=$('#instructions');d.open=!d.open;$('#help').setAttribute('aria-expanded',String(d.open));};
 function mouseLabel(){const b=$('#mouse');b.textContent=`Souris : ${mouse.enabled?'oui':'non'}`;b.setAttribute('aria-pressed',String(mouse.enabled));canvas.classList.toggle('mouse-control',mouse.enabled);}
 $('#mouse').onclick=()=>{mouse.enabled=!mouse.enabled;clearInput();mouseLabel();};mouseLabel();
-canvas.width=1680;canvas.height=524;document.body.classList.add('panorama');
+canvas.width=1680;canvas.height=(262+game.skyHeight)*2;document.body.classList.add('panorama');document.documentElement.style.setProperty('--world-height',String(262+game.skyHeight));
 function controlRect(){return canvas.getBoundingClientRect();}
 function mouseButtons(mask){const edge=mouse.buttons(mask,game.carrying);if(edge.drop){taps.fire=taps.turn=false;taps.drop=true;}else if(edge.fire)taps.fire=true;}
 canvas.addEventListener('mousemove',e=>{if(!started||game.paused)return;mouse.move(e.clientX,e.clientY,controlRect());mouseButtons(e.buttons);});

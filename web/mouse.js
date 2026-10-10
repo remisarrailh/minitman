@@ -8,7 +8,7 @@
    this.inside=true;
    this.width=this.world?840:280;
    this.targetX=(clientX-rect.left)/rect.width*this.width;
-   this.targetY=(clientY-rect.top)/rect.height*(this.world?262:192);
+   this.targetY=(clientY-rect.top)/rect.height*(this.world?262+(this.skyHeight||0):192)-(this.world?(this.skyHeight||0):0);
   }
   buttons(mask,carrying=false){
    if(!this.enabled||!this.inside)return {};

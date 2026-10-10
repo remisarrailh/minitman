@@ -2,7 +2,7 @@
 .mouse-control{cursor:crosshair}.mouse-help{font:11px ui-monospace,monospace;color:#a3adb8;line-height:1.7}
 .speed-control{display:flex;align-items:center;gap:10px;margin:0 0 14px;font:12px ui-monospace,monospace;grid-column:1/-1}.speed-control input[type=range]{flex:1;min-width:80px;accent-color:var(--accent)}.speed-control input[type=number]{width:80px;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:8px;color:var(--ink);font:inherit}.speed-control button{padding:8px 10px}.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
 
-body.panorama main{max-width:1600px}body.panorama #game{aspect-ratio:840/262}body.panorama .display{max-width:none;width:100%}.scene-labels{display:none}body.panorama .scene-labels{display:flex;justify-content:space-around;padding:7px 0;font:10px ui-monospace,monospace;color:#a3adb8;background:#101720}body.panorama #overlay{inset:68px 0 0}body.panorama #overlay p{margin:5px}body.panorama #overlay small{display:none}@media(max-width:600px){body.panorama #overlay h2{font-size:13px;margin:0}body.panorama #overlay p{display:none}body.panorama #overlay button{padding:5px;margin:3px;font-size:12px}body.panorama .scene-labels{font-size:8px}}
+body.panorama main{max-width:1600px}body.panorama #game{aspect-ratio:840/var(--world-height,262)}body.panorama .display{max-width:none;width:100%}.scene-labels{display:none}body.panorama .scene-labels{display:flex;justify-content:space-around;padding:7px 0;font:10px ui-monospace,monospace;color:#a3adb8;background:#101720}body.panorama #overlay{inset:68px 0 0}body.panorama #overlay p{margin:5px}body.panorama #overlay small{display:none}@media(max-width:600px){body.panorama #overlay h2{font-size:13px;margin:0}body.panorama #overlay p{display:none}body.panorama #overlay button{padding:5px;margin:3px;font-size:12px}body.panorama .scene-labels{font-size:8px}}
 
 #magnifier{position:absolute;z-index:2;pointer-events:none;width:min(220px,38vw);border:2px solid var(--accent);border-radius:10px;overflow:hidden;background:#000;box-shadow:0 4px 22px #000b}#magnifier[hidden]{display:none}#magnifier span{display:block;padding:5px 8px;background:#172b27;color:var(--accent);font:10px ui-monospace,monospace}#magnifier-view{width:100%;aspect-ratio:420/336;image-rendering:pixelated}
 
@@ -16,7 +16,7 @@ body.panorama main{max-width:1600px}body.panorama #game{aspect-ratio:840/262}bod
 .touch-controls{display:none}
 .display:fullscreen,.display.fullscreen-fallback{width:100vw!important;height:100dvh;max-width:none!important;border:0;border-radius:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#000}
 .display:fullscreen .hud,.display.fullscreen-fallback .hud,.display:fullscreen .scene-labels,.display.fullscreen-fallback .scene-labels{width:100%;flex-shrink:0}
-.display:fullscreen .game-stage,.display.fullscreen-fallback .game-stage{width:min(100vw,calc((100dvh - 70px) * 840 / 262));flex-shrink:0}
+.display:fullscreen .game-stage,.display.fullscreen-fallback .game-stage{width:min(100vw,calc((100dvh - 70px) * 840 / var(--world-height,262)));flex-shrink:0}
 .display.fullscreen-fallback{position:fixed;inset:0;z-index:1000}
 body.game-fullscreen{overflow:hidden}
 @media (pointer:coarse){
