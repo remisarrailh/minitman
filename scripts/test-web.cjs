@@ -151,9 +151,9 @@ for(const continuous of [false,true])for(const direction of [-1,1]){
 console.log('PASS: swept four-pixel shots stop on solids, pass through holes, both directions and across world coordinates');
 
 const frontalFire=new Game(data);frontalFire.step({fire:true,aimX:0,aimY:-1});
-assert.equal(frontalFire.orientation,2);assert.equal(frontalFire.shots.length,0);assert.equal(frontalFire.events.includes('fire'),false);assert.equal(frontalFire.cooldown,0);
+assert.equal(frontalFire.orientation,2);assert.equal(frontalFire.shots.length,1);assert.equal(frontalFire.shots[0].vy,-360);assert.equal(frontalFire.events.includes('fire'),true);assert.ok(frontalFire.cooldown>0);
 for(const aimX of [-1,1]){const lateralFire=new Game(data);lateralFire.step({fire:true,aimX});assert.equal(lateralFire.shots.length,1);}
-console.log('PASS: frontal orientation cannot shoot or start cooldown; left/right orientations can shoot');
+console.log('PASS: mouse aiming permits vertical and lateral shots');
 
 for(const [scene,x] of [[2,180],[3,50]]){
  const landing=new Game(data);landing.continuous=true;Object.assign(landing,{scene,x,y:1});
@@ -349,3 +349,6 @@ for(const x of [405,545,700]){
 }
 const shortDrop=new Game(data);shortDrop.continuous=true;shortDrop.enemySpawnRemaining=9999;shortDrop.customZones={collisions:[{x:470,y:58,w:70,h:2}],teleports:[]};shortDrop.pilot={x:490,y:31,vy:0,pose:'idle',facing:1,animation:0};for(let i=0;i<60;i++)shortDrop.step({});assert.ok(shortDrop.pilot);assert.equal(shortDrop.pilot.y,44);
 console.log('PASS: long falls in open gaps kill the pilot; a 13-pixel drop remains safe');
+
+const aimShots=new Game(data);aimShots.continuous=true;aimShots.assets={...data,backgrounds:data.backgrounds.map(()=>Array(8192).fill(0))};aimShots.aimedShot(300,80,{aimTargetX:400,aimTargetY:180},true);const diagonal=aimShots.shots[0];assert.ok(Math.abs(Math.hypot(diagonal.vx,diagonal.vy)-360)<1e-8);assert.ok(aimShots.advanceShot(diagonal,.1));assert.ok(Math.abs(diagonal.x-325.455844)<.001);assert.ok(Math.abs(diagonal.y-105.455844)<.001);aimShots.enemies=[{x:340,y:120,state:1,hits:0,animation:0,phase:'inside'}];assert.equal(aimShots.advanceShot(diagonal,.2),false);assert.equal(aimShots.enemies[0].hits,1);
+console.log('PASS: aimed diagonal shots maintain speed and swept enemy collisions');

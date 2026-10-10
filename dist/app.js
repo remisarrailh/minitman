@@ -133,7 +133,8 @@ function input(){
  const manual=x||y||joy.x||joy.y||axisTap.x||axisTap.y;
  return {up:joy.y<-.5||keyboard&&(y<0||axisTap.y<0),down:joy.y>.5||keyboard&&(y>0||axisTap.y>0),jump:taps.jump||keys.has('KeyZ')||pointers.jump.size>0,crouch:taps.crouch||keyboard&&(y>0||axisTap.y>0)||joy.y>.5||pointers.crouch.size>0,interact:taps.interact,cockpit:taps.cockpit,
  x:(x||joy.x||axisTap.x||(!keyboard?m.x:0))*fine,y:(y||joy.y||axisTap.y||(!keyboard?m.y:0))*fine,
- aimX:onFoot?m.aimX:manual?(x||joy.x||axisTap.x):m.aimX,aimY:manual?(y||joy.y||axisTap.y):m.aimY,
+ aimX:mouse.inside?m.aimX:(x||joy.x||axisTap.x),aimY:mouse.inside?m.aimY:(y||joy.y||axisTap.y),
+ aimTargetX:mouse.enabled&&mouse.inside?mouse.targetX:undefined,aimTargetY:mouse.enabled&&mouse.inside?mouse.targetY:undefined,
  fire:taps.fire||!onFoot&&keys.has('Space')||pointers.fire.size>0||m.fire,drop:taps.drop||keys.has('KeyC')||keys.has('KeyX')||pointers.drop.size>0||m.drop};
 }
 function clearInput(){keys.clear();mouse.reset();Object.values(pointers).forEach(s=>s.clear());Object.keys(taps).forEach(k=>taps[k]=false);axisTap.x=axisTap.y=0;joy.x=joy.y=0;joy.pointer=null;$('#stick').style.transform='';game.previous={};}
@@ -193,7 +194,7 @@ function render(){
  const shownTrain=missilePreview?{x:315,y:168,cargo:true}:game.train;
  if(shownTrain){const t=shownTrain;ctx.drawImage(sprites[24][0],t.x*2,t.y*2,126,24);if(t.cargo)ctx.drawImage(sprites[25][0],(t.x+trainMissileOffset.x)*2,(t.y+trainMissileOffset.y)*2,70,18);}
  const pads=game.missilePads();for(let i=0;i<3;i++)if(missilePreview||game.missileSlots[i]==='loaded')actor(26,pads[i].x,pads[i].y-23);for(const m of game.launching)actor(26,m.x,m.y);
- ctx.fillStyle='#fff';for(const p of game.shots)ctx.fillRect(Math.round(p.x)*2,Math.round(p.y)*2,8,2);
+ ctx.strokeStyle='#fff';ctx.lineWidth=2;for(const p of game.shots){const vx=p.vx??p.v,vy=p.vy||0,d=Math.hypot(vx,vy)||1;ctx.beginPath();ctx.moveTo(p.x*2,p.y*2);ctx.lineTo((p.x+vx/d*4)*2,(p.y+vy/d*4)*2);ctx.stroke();}
  if(game.winchVisible())actor(23,world.x+13,world.y+11);
  if(game.carrying)actor(game.carrying==='beam'?22:21,world.x+3,world.y+13);
  for(const enemy of game.enemies){const sequence=enemy.state===1?[1,2,3,4,3,2]:enemy.state===2?[0,1,2,3,4,5,4,3,2,1]:[0];const frame=sequence[Math.floor(enemy.animation*15)%sequence.length];const img=sprites[17+enemy.state][frame];ctx.drawImage(img,Math.round(enemy.x*2),Math.round((enemy.y+2)*2),img.width*2,img.height*2);}

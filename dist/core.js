@@ -298,11 +298,16 @@
    if(e.hits>=3)this.destroyEnemy(e,true);else e.state=e.hits+1;
    this.emit('hit');this.notice=e.hits>=3?'Robot détruit':'Robot touché — état '+e.state;return true;
   }
+  aimedShot(x,y,input,right){
+   const dx=Number.isFinite(input.aimTargetX)?input.aimTargetX-x:(input.aimX||0),dy=Number.isFinite(input.aimTargetY)?input.aimTargetY-y:(input.aimY||0),length=Math.hypot(dx,dy);
+   const vx=length>.01?dx/length*360:(right?360:-360),vy=length>.01?dy/length*360:0;
+   this.shots.push({x,y,v:vx,vx,vy});
+  }
   advanceShot(p,dt){
-   const travel=p.v*dt,steps=Math.max(1,Math.ceil(Math.abs(travel)));
+   const dx=(p.vx??p.v)*dt,dy=(p.vy||0)*dt,steps=Math.max(1,Math.ceil(Math.hypot(dx,dy)));
    if(this.shotHitsScenery(p.x,p.y)||this.shotHitsEnemy(p))return false;
-   for(let i=0;i<steps;i++){p.x+=travel/steps;if(this.shotHitsScenery(p.x,p.y)||this.shotHitsEnemy(p))return false;}
-   return p.x>-40&&p.x<(this.continuous?840:280);
+   for(let i=0;i<steps;i++){p.x+=dx/steps;p.y+=dy/steps;if(this.shotHitsScenery(p.x,p.y)||this.shotHitsEnemy(p))return false;}
+   return p.x>-40&&p.x<(this.continuous?840:280)&&p.y>-40&&p.y<(this.continuous?262:192);
   }
   move(dx,dy){
    const steps=Math.max(1,Math.ceil(Math.max(Math.abs(dx),Math.abs(dy))));
@@ -464,7 +469,7 @@
     if(!this.pilot.elevator&&input.fire&&Math.abs(input.x||0)<.01&&['idle','crouch'].includes(this.pilot.pose)){
      const p=this.pilot;
      if(p.pose==='idle')p.pose='shoot';if(Math.abs(input.aimX||0)>.01)p.facing=input.aimX<0?-1:1;
-     if(this.cooldown===0){const right=p.facing>0;this.shots.push({x:p.x+(right?20:-4),y:p.y+2+(p.pose==='crouch'?10:6),v:right?360:-360});this.cooldown=.22;this.emit('fire');}
+     if(this.cooldown===0){const right=p.facing>0;this.aimedShot(p.x+(right?20:-4),p.y+2+(p.pose==='crouch'?10:6),input,right);this.cooldown=.22;this.emit('fire');}
     }
     this.shots=this.shots.filter(p=>this.advanceShot(p,dt));
     this.previous={cockpit:Boolean(input.cockpit)};
@@ -482,7 +487,7 @@
     this.orientation=ratio<.5?2:ratio<1.5?(ax<0?1:3):(ax<0?0:4);
    }
    if(drop&&!this.previous.drop)this.drop();
-   if(input.fire&&!both&&!drop&&this.orientation!==2&&this.cooldown===0){const right=this.orientation>=2;this.shots.push({x:(this.continuous?this.worldPosition().x:this.x)+(right?37:0),y:(this.continuous?this.worldPosition().y:this.y)+8,v:right?360:-360});this.cooldown=.22;this.emit('fire');}
+   if(input.fire&&!both&&!drop&&(this.orientation!==2||Math.hypot(input.aimX||0,input.aimY||0)>.01)&&this.cooldown===0){const right=this.orientation>=2;this.aimedShot((this.continuous?this.worldPosition().x:this.x)+(right?37:0),(this.continuous?this.worldPosition().y:this.y)+8,input,right);this.cooldown=.22;this.emit('fire');}
    // Provisional cadence: logical pixels, fixed step, no DOM/frame-time physics.
    const rate=this.speedPercent/100;
    this.move((input.x||0)*FLIGHT_SPEED.x*dt*rate,(input.y||0)*FLIGHT_SPEED.y*dt*rate);
