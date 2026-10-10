@@ -4,7 +4,7 @@
 class FpsRoom {
  constructor(game){
   this.game=game;this.active=false;this.bullets=[];this.effects=[];this.cooldown=0;this.flash=0;this.recoil=0;this.hitMarker=0;this.lookY=0;
-  this.exit={x:3,z:2,level:0};this.computer={x:19,z:15,level:6};
+  this.exit={x:3,z:2,level:0,label:'TOIT',world:{x:519,y:31,floor:45}};this.sideExit={x:20,z:9,level:2,label:'PLATEFORME',world:{x:670,y:71,floor:85}};this.exits=[this.exit,this.sideExit];this.computer={x:19,z:15,level:6};
   this.maps=Array.from({length:7},(_,level)=>this.makeMap(level));
  }
  makeMap(level){
@@ -35,16 +35,18 @@ class FpsRoom {
  }
  enter(){
   const p=this.game.pilot;if(!p)return;
-  const level=Math.max(0,Math.min(6,Math.round(((p.floor??p.y+14)-62)/13)));
-  const entry=level?this.downStair(level-1):{x:3,z:3};
+  const sideEntry=p.fpsEntry==='side'||(!p.fps&&p.x>640&&p.floor===101);
+  const level=sideEntry?2:Math.max(0,Math.min(6,Math.round(((p.floor??p.y+14)-62)/13)));
+  delete p.fpsEntry;
+  const entry=sideEntry?{x:this.sideExit.x-1,z:this.sideExit.z}:level?this.downStair(level-1):{x:3,z:3};
   this.player=p.fps||{x:entry.x,z:entry.z,yaw:Math.atan2(9-entry.z,11-entry.x),jump:0,vy:0,level};
   this.player.level??=level;p.fps=this.player;this.active=true;this.lookY=0;this.game.fpsActive=true;this.bullets=[];this.transition=null;
   this.game.notice='Base FPS — 7 étages, escaliers alternés ; ordinateur au niveau 7';
  }
- leave(){
+ leave(exit=this.exit){
   const g=this.game,p=g.pilot;this.active=false;g.fpsActive=false;
-  if(p){delete p.fps;Object.assign(p,{x:519,y:31,floor:45,inside:false,vy:0,elevator:null,pose:'idle',fallOriginY:undefined});}
-  g.notice='Retour sur le toit';
+  if(p){delete p.fps;Object.assign(p,{...exit.world,previousX:exit.world.x,previousY:exit.world.y,inside:false,vy:0,elevator:null,pose:'idle',fallOriginY:undefined});}
+  g.notice=exit===this.sideExit?'Retour sur la plateforme extérieure':'Retour sur le toit';
  }
  sync(){const p=this.game.pilot;if(!p){this.active=false;this.game.fpsActive=false;return;}if(!this.active&&!p.elevator&&p.inside&&p.y>=44)this.enter();}
  look(dx,dy){if(!this.active)return;this.player.yaw+=dx*.003;this.lookY=Math.max(-.5,Math.min(.5,this.lookY+dy*.002));}
@@ -109,7 +111,7 @@ class FpsRoom {
    if(stair&&!p.stairLock)this.startStairs(stair);
    if(input.fire)this.shoot();
    if(input.interact&&!this.interactHeld){
-    if(p.level===0&&Math.hypot(p.x-this.exit.x,p.z-this.exit.z)<1.6){this.leave();return;}
+    const exit=this.exits.find(e=>e.level===p.level&&Math.hypot(p.x-e.x,p.z-e.z)<1.6);if(exit){this.leave(exit);return;}
     if(p.level===6&&Math.hypot(p.x-this.computer.x,p.z-this.computer.z)<2){if(!g.launchMissile())g.notice='Aucun missile chargé';}
    }
    this.interactHeld=input.interact;
@@ -171,7 +173,7 @@ class FpsRoom {
    if(hit.u<.06){c.fillStyle='#0005';c.fillRect(x,top,2,size);}if(hit.cell>=3){c.fillStyle='#b3bfaa66';c.fillRect(x,top+size*.5,2,3);}
   }
   const objects=[...this.stairs(p.level).map(s=>({...s,kind:'stair',label:s.kind==='down'?'DESCENDRE':'MONTER',to:s.to}))];
-  if(p.level===0)objects.push({...this.exit,kind:'exit'});if(p.level===6)objects.push({...this.computer,kind:'computer'});
+  for(const exit of this.exits)if(exit.level===p.level)objects.push({...exit,kind:'exit'});if(p.level===6)objects.push({...this.computer,kind:'computer'});
   for(const e of this.game.enemies)if(e.phase==='inside'&&this.enemyPosition(e).level===p.level)objects.push({...e.fps,kind:'enemy',enemy:e});
   for(const b of this.bullets)if((b.level||0)===p.level)objects.push({...b,kind:'bullet'});
   for(const [kind,items]of [['mine',this.game.mines],['bonus',this.game.bonuses]])for(const item of items)if(item.fps&&(item.fps.level||0)===p.level)objects.push({...item.fps,kind});
@@ -193,7 +195,7 @@ class FpsRoom {
    if(d<depth[Math.max(0,Math.min(419,Math.floor(screen/2)))]&&screen>0&&screen<w){
     c.textAlign='center';c.font='bold 12px monospace';
     if(o.kind==='enemy'&&o.enemy.hitFlash>0){c.fillStyle='#fff17b';c.fillText('TOUCHÉ · '+o.enemy.hits+'/3',screen,top-12);}
-    if(['computer','exit','stair'].includes(o.kind)&&d<8){c.fillStyle='#fff';c.fillText(o.kind==='exit'?'E · SORTIE':o.kind==='computer'?'E · ORDINATEUR':o.label+' · ÉTAGE '+(o.to+1),screen,top-10);}
+    if(['computer','exit','stair'].includes(o.kind)&&d<8){c.fillStyle='#fff';c.fillText(o.kind==='exit'?'E · SORTIE '+o.label:o.kind==='computer'?'E · ORDINATEUR':o.label+' · ÉTAGE '+(o.to+1),screen,top-10);}
    }
   }
   this.drawWeapon(c,w,h);

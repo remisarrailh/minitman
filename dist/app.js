@@ -3,7 +3,7 @@
 document.documentElement.classList.toggle('dev-mode',new URLSearchParams(location.search).get('dev')==='true');
 const {Game,rowAddress,triple,pixelX}=MinitCore;
 const game=new Game(MINIT_ASSETS),$=s=>document.querySelector(s),canvas=$('#game'),ctx=canvas.getContext('2d');
-game.continuous=true;game.skyHeight=160;
+game.continuous=true;game.skyHeight=160;game.fpsInterior=true;
 const fpsRoom=new FpsRoom(game);
 try{const saved=JSON.parse(localStorage.getItem("minitman-custom-zones"));if(saved&&Array.isArray(saved.collisions)&&Array.isArray(saved.teleports))game.customZones=saved;}catch{}
 const screen=document.createElement('canvas');screen.width=280;screen.height=192;const gfx=screen.getContext('2d');

@@ -413,6 +413,7 @@
     return;
    }
    const entrance=Math.abs(p.x+7-686)<30&&Math.abs(p.y-(85-14))<1;
+   if(this.fpsInterior&&entrance&&edge&&down){p.x=670;p.previousX=p.x;p.inside=true;p.floor=88;p.y=74;p.fpsEntry='side';p.vy=0;p.pose='idle';return;}
    let atCustomLift=false;
    if(this.customZones){
     // Include the feet on the zone boundary, where thin floor-level lifts sit.
