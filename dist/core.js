@@ -35,6 +35,14 @@
    });
   }
   nextTarget(kind){const holes=this.bridgeDamage[kind];return this.assets[kind==='truss'?'trusses':'beams'][holes.length?Math.min(...holes):kind==='truss'?this.trusses:this.beams]||null;}
+  placementGuide(){
+   if(!this.carrying||this.scene!==1)return null;
+   const expected=this.nextTarget(this.carrying);if(!expected)return null;
+   if(this.carrying==='beam'&&this.beams+2>this.trusses)return {ok:false,text:'Poser les triangles d’abord'};
+   const actual=this.piecePosition(),dx=pixelX(expected)-pixelX(actual),dy=expected[2]-actual[2];
+   const ok=dx===0&&dy===0;
+   return {ok,dx,dy,text:ok?'✓ OK · poser (C)':[(dx<0?'← Plus à gauche':dx>0?'Plus à droite →':''),(dy<0?'↑ Plus haut':dy>0?'↓ Plus bas':'')].filter(Boolean).join(' · ')};
+  }
   // $B783: exact winch column/variant, height and stock check.
   pickup(){
    if(this.scene!==3||this.carrying)return false;

@@ -219,6 +219,7 @@ function render(){
  ctx.restore();
  if(fpsRoom.active||fpsDebug){if(fpsDebug){debugWorld.width=canvas.width;debugWorld.height=canvas.height;debugCtx.drawImage(canvas,0,0);ctx.fillStyle='#000';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(debugWorld,0,0,canvas.width/2,canvas.height/2);ctx.save();ctx.translate(canvas.width/2,0);fpsRoom.renderInspection(ctx,canvas.width/2,canvas.height/2,sprites,scenes);ctx.restore();ctx.fillStyle='#9fffd0';ctx.font='22px monospace';ctx.fillText('DEBUG 2D · états partagés',12,28);if(fpsRoom.active)ctx.fillText('Joueur : étage '+(fpsRoom.player.level+1)+' · escalier '+fpsRoom.project(fpsRoom.player).distance.toFixed(1),12,canvas.height/2+28);for(const e of game.enemies.filter(e=>e.fps).slice(0,6)){ctx.fillText('Robot : étage '+(e.fps.level+1)+' · escalier '+fpsRoom.project(e.fps).distance.toFixed(1),12,canvas.height/2+60+game.enemies.indexOf(e)*28);}}else fpsRoom.render(ctx,canvas.width,canvas.height,sprites,scenes);$('#magnifier').hidden=true;}else renderMagnifier(world);
  const returnedTo2D=document.body.classList.contains('fps-mode')&&!fpsRoom.active;
+ const placement=game.placementGuide(),guide=$('#placement-guide');guide.hidden=!placement||fpsRoom.active||!started;guide.textContent=placement?.text||'';guide.classList.toggle('ok',Boolean(placement?.ok));
  document.body.classList.toggle('fps-mode',fpsRoom.active);
  if(returnedTo2D&&started&&!game.ended){mouse.reset();canvas.focus({preventScroll:true});}
  if(!fpsRoom.active&&document.pointerLockElement===canvas)document.exitPointerLock();

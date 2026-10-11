@@ -359,3 +359,5 @@ console.log('PASS: extra sky permits flight, world seam crossing, spawns, upward
 
 const verticalBlock=new Game(data);for(const y of [-1,1]){assert.equal(verticalBlock.aimedShot(100,100,{aimX:0,aimY:y},true),false);assert.equal(verticalBlock.aimedShot(100,100,{aimX:.1,aimY:y},true),false);assert.equal(verticalBlock.aimedShot(100,100,{aimX:1,aimY:y},true),true);}assert.equal(verticalBlock.shots.length,2);
 console.log('PASS: vertical and near-vertical aiming is blocked while diagonals remain available');
+const placement=new Game(data);placement.scene=1;placement.carrying='truss';const goal=placement.nextTarget('truss');placement.x=goal[0]*7+goal[1]-3;placement.y=goal[2]-13;assert.equal(placement.placementGuide().ok,true);placement.x-=2;assert.ok(placement.placementGuide().dx>0);placement.x+=4;assert.ok(placement.placementGuide().dx<0);placement.x-=2;placement.y-=2;assert.ok(placement.placementGuide().dy>0);placement.y+=4;assert.ok(placement.placementGuide().dy<0);placement.y-=2;assert.equal(placement.drop(),true);assert.equal(placement.placementGuide(),null);
+console.log('PASS: placement directions and OK match exact accepted drop position');

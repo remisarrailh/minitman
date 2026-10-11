@@ -36,3 +36,5 @@ body.panorama .game-stage #overlay{inset:0}
 html:not(.dev-mode) [data-dev]{display:none!important}
 
 body.fps-mode .scene-labels{display:none}body.fps-mode #game{cursor:crosshair;touch-action:none}
+
+#placement-guide{position:absolute;z-index:3;top:10px;left:10px;max-width:calc(100% - 115px);padding:8px 12px;border:1px solid #ffd16c;border-radius:7px;background:#17130eed;color:#ffd16c;font:bold 13px ui-monospace,monospace;pointer-events:none}#placement-guide.ok{color:#9fffd0;border-color:#72e5a9;background:#102a20ed}#placement-guide[hidden]{display:none}
