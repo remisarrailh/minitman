@@ -32,3 +32,7 @@ Piliers, caisses et machines permettent de se mettre à couvert et arrêtent les
 ### Synchronisation 2D / FPS
 
 Les robots intérieurs utilisent une simulation commune et poursuivent leur route vers l’ordinateur même lorsque le joueur reste dehors. Leur identité, dégâts, états, mines et destruction sont partagés. Leur position 2D, ainsi que celle du personnage intérieur, est une projection normalisée de la distance à l’escalier suivant (ou à l’ordinateur au dernier niveau), sur la largeur de l’étage. Le bouton « Debug 2D + FPS » affiche simultanément le panoramique, la vue intérieure et les distances aux escaliers. Hors du bâtiment, la caméra de debug observe l’étage d’un robot intérieur ; elle ne prend pas le contrôle du personnage.
+
+### Réglages des ennemis
+
+Avec `?dev=true`, la section Apparition et comportement des ennemis permet de régler la vitesse (200 % par défaut), la dispersion verticale dans le ciel (160 pixels), la part d’attaque du pont et la part de chasse du joueur. La part base complète le total à 100 % : par défaut 50 % base, 25 % pont, 25 % chasse. Les chasseurs poursuivent le joueur dehors et dans la base, où ils peuvent prendre les escaliers dans les deux sens. Les réglages sont conservés localement.

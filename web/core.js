@@ -7,7 +7,7 @@
  const pixelX=t=>t[0]*7+t[1];
  const FLIGHT_SPEED={x:84,y:51};
  class Game {
-  constructor(assets){this.assets=assets;this.speedPercent=100;this.pilotSpeedPercent=100;this.jumpHeightPercent=100;this.missilePadPositions=[{x:346,y:139},{x:356,y:133},{x:363,y:128}];this.infiniteLives=true;this.computerHitLimit=3;this.respawnSeconds=3;this.respawnInBase=false;this.enemyBridgeChance=25;this.enemySpawnSeconds=30;this.enemySafetyRadius=10;this.random=Math.random;this.continuous=false;this.skyHeight=0;this.reset();}
+  constructor(assets){this.assets=assets;this.speedPercent=100;this.pilotSpeedPercent=100;this.jumpHeightPercent=100;this.missilePadPositions=[{x:346,y:139},{x:356,y:133},{x:363,y:128}];this.infiniteLives=true;this.computerHitLimit=3;this.respawnSeconds=3;this.respawnInBase=false;this.enemySpeedPercent=100;this.enemyDispersion=0;this.enemyChaseChance=0;this.enemyBridgeChance=25;this.enemySpawnSeconds=30;this.enemySafetyRadius=10;this.random=Math.random;this.continuous=false;this.skyHeight=0;this.reset();}
   setSpeedPercent(value){
    if(Number.isFinite(value))this.speedPercent=Math.round(Math.max(10,Math.min(400,value))*10)/10;
    return this.speedPercent;
@@ -137,7 +137,7 @@
    this.launching.forEach(m=>m.y-=90*dt);this.launching=this.launching.filter(m=>m.y>-this.skyHeight-30);
    if(this.launchedMissiles===3&&this.launching.length===0){this.won=true;this.ended=true;this.notice='Victoire — trois missiles lancés !';this.emit('complete');}
   }
-  setEnemyBridgeChance(value){if(Number.isFinite(value))this.enemyBridgeChance=Math.max(0,Math.min(100,value));return this.enemyBridgeChance;}
+  setEnemyBridgeChance(value){if(Number.isFinite(value))this.enemyBridgeChance=Math.max(0,Math.min(100-this.enemyChaseChance,value));return this.enemyBridgeChance;}
   bridgeTargets(){
    const targets=[];for(const kind of ['truss','beam'])for(let i=0;i<this[kind==='truss'?'trusses':'beams'];i++)if(!this.bridgeDamage[kind].includes(i)){
     const t=this.assets[kind==='truss'?'trusses':'beams'][i];targets.push({kind,index:i,x:pixelX(t)+10,y:t[2]+70});
@@ -152,15 +152,20 @@
   setRespawnSeconds(value){if(Number.isFinite(value))this.respawnSeconds=Math.max(.1,Math.min(15,value));return this.respawnSeconds;}
   setEnemySpawnSeconds(value){if(Number.isFinite(value)){this.enemySpawnSeconds=Math.max(1,Math.min(120,value));this.enemySpawnRemaining=this.enemySpawnSeconds*(.5+this.random());}return this.enemySpawnSeconds;}
   setEnemySafetyRadius(value){if(Number.isFinite(value))this.enemySafetyRadius=Math.max(0,Math.min(300,value));return this.enemySafetyRadius;}
+  setEnemySpeedPercent(value){if(Number.isFinite(value))this.enemySpeedPercent=Math.max(10,Math.min(500,value));return this.enemySpeedPercent;}
+  setEnemyDispersion(value){if(Number.isFinite(value))this.enemyDispersion=Math.max(0,Math.min(300,value));return this.enemyDispersion;}
+  setEnemyChaseChance(value){if(Number.isFinite(value))this.enemyChaseChance=Math.max(0,Math.min(100-this.enemyBridgeChance,value));return this.enemyChaseChance;}
+  enemyDistribution(){return {base:100-this.enemyBridgeChance-this.enemyChaseChance,bridge:this.enemyBridgeChance,chase:this.enemyChaseChance};}
   spawnEnemy(forceBridge=false){
    const heli=this.worldPosition(),safe=[];
    for(let x=0;x<=826;x++)if(Math.abs(x+7-(heli.x+21))>=this.enemySafetyRadius+28)safe.push(x);
    if(!safe.length)return false;
-   const targets=this.bridgeTargets(),attack=(forceBridge||this.random()*100<this.enemyBridgeChance)&&targets.length>0;
+   const targets=this.bridgeTargets(),roll=this.random()*100,attack=(forceBridge||roll<this.enemyBridgeChance)&&targets.length>0,chase=!forceBridge&&!attack&&roll<this.enemyBridgeChance+this.enemyChaseChance;
    const bridgeTarget=attack?targets[Math.min(targets.length-1,Math.floor(this.random()*targets.length))]:null;
-   this.enemies.push({x:safe[Math.min(safe.length-1,Math.floor(this.random()*safe.length))],y:-this.skyHeight-14,state:1,hits:0,animation:0,action:attack?'bridge':'base',bridgeTarget,phase:'arrival',arrivalY:-this.skyHeight});return true;
+   this.enemies.push({x:safe[Math.min(safe.length-1,Math.floor(this.random()*safe.length))],y:-this.skyHeight-14,state:1,hits:0,animation:0,action:attack?'bridge':chase?'chase':'base',bridgeTarget,phase:'arrival',arrivalY:Math.min(17,-this.skyHeight+this.random()*this.enemyDispersion)});return true;
   }
   enemyHitsWall(e,x,y){
+   if(this.fpsInterior&&Math.abs(x-519)<2&&y>=17&&y<=48)return false;
    const indoors=['inside','walking','aligning'].includes(e.phase);
    if(indoors&&this.customZones)return this.customZones.collisions.some(z=>x+13>z.x&&x+2<z.x+z.w&&y+12>z.y&&y+4<z.y+z.h);
    for(let py=Math.floor(y+4);py<=Math.floor(y+12);py++)for(let px=Math.floor(x+2);px<=Math.floor(x+12);px++){
@@ -188,21 +193,26 @@
    }):[{x:527,y:31},{x:421,y:48},{x:513,y:61},{x:421,y:74},{x:668,y:87},{x:421,y:100},{x:668,y:113}];
    const roofEntry={x:519,y:31};
    route=[roofEntry,...route.filter(stop=>stop.y>roofEntry.y+1)];
-   const heli=this.worldPosition();
+   const heli=this.worldPosition(),rate=this.enemySpeedPercent/100;
    for(const e of [...this.enemies]){
     e.animation+=dt;
     if(e.action==='bridge'){
-     const target=e.phase==='arrival'?{x:e.x,y:-this.skyHeight}:e.phase==='attack-align'?{x:e.bridgeTarget.x,y:-this.skyHeight}:{x:e.bridgeTarget.x,y:e.bridgeTarget.y-7};
-     const dx=target.x-e.x,dy=target.y-e.y,d=Math.hypot(dx,dy),step=Math.min(d,(e.phase==='arrival'?120:75)*dt);
+     const target=e.phase==='arrival'?{x:e.x,y:e.arrivalY??-this.skyHeight}:e.phase==='attack-align'?{x:e.bridgeTarget.x,y:e.arrivalY??-this.skyHeight}:{x:e.bridgeTarget.x,y:e.bridgeTarget.y-7};
+     const dx=target.x-e.x,dy=target.y-e.y,d=Math.hypot(dx,dy),step=Math.min(d,(e.phase==='arrival'?120:75)*dt*rate);
      if(d)this.moveEnemy(e,e.x+dx/d*step,e.y+dy/d*step);
      if(Math.hypot(target.x-e.x,target.y-e.y)<.01){if(e.phase==='arrival')e.phase='attack-align';else if(e.phase==='attack-align')e.phase='attack';else{this.damageBridge(e.bridgeTarget);this.destroyEnemy(e);}}
      continue;
     }
-    if(e.action!=='base')continue;
+    if(e.action==='chase'&&e.phase!=='inside'){
+     if(this.pilot?.inside&&this.fpsInterior){const d=Math.hypot(519-e.x,31-e.y),n=Math.min(d,48*rate*dt);if(d)this.moveEnemy(e,e.x+(519-e.x)/d*n,e.y+(31-e.y)/d*n);if(d<2){e.x=519;e.y=48;e.phase='inside';}continue;}
+     const player=this.pilot||heli,target={x:Math.max(0,Math.min(826,player.x+(e.x<player.x?-40:40))),y:player.y},dx=target.x-e.x,dy=target.y-e.y,d=Math.hypot(dx,dy),n=Math.min(d,48*rate*dt);
+     if(d)this.moveEnemy(e,e.x+dx/d*n,e.y+dy/d*n);continue;
+    }
+    if(!['base','chase'].includes(e.action))continue;
     if(this.fpsInterior&&e.y>=48&&['walking','aligning','descending'].includes(e.phase)){e.phase='inside';continue;}
     if(e.phase==='inside'){
      if(this.fpsInterior)continue;
-     const target=e.y<126-.01?{x:e.x,y:126}:{x:421,y:126},dx=target.x-e.x,dy=target.y-e.y,d=Math.hypot(dx,dy),step=Math.min(d,20*dt);
+     const target=e.y<126-.01?{x:e.x,y:126}:{x:421,y:126},dx=target.x-e.x,dy=target.y-e.y,d=Math.hypot(dx,dy),step=Math.min(d,20*dt*rate);
      if(d)this.moveEnemy(e,e.x+dx/d*step,e.y+dy/d*step);
      if(e.x<=432&&e.x+14>=420&&Math.abs(e.y-126)<1){this.destroyEnemy(e);this.computerHits++;this.notice='Ordinateur touché — '+this.computerHits+'/'+this.computerHitLimit;if(this.computerHits>=this.computerHitLimit){this.ended=true;this.notice='Fin de partie — ordinateur détruit';}}
      continue;
@@ -210,7 +220,7 @@
     e.routeIndex??=0;const entry=route[Math.min(e.routeIndex,route.length-1)];
     const distance=this.customZones?.teleportDistance||13;
     const target=e.phase==='arrival'?{x:e.x,y:e.arrivalY}:e.phase==='approach'?{x:roofEntry.x,y:e.arrivalY??0}:e.phase==='descending'?{x:entry.x,y:Math.min(248,route[e.routeIndex+1]?.y??entry.y+distance)}:e.phase==='walking'?{x:entry.x,y:e.walkY??e.y}:entry;
-    const dx=target.x-e.x,dy=target.y-e.y,d=Math.hypot(dx,dy),step=Math.min(d,(e.phase==='arrival'&&e.y<0?120:24)*dt),x=d?e.x+dx/d*step:e.x,y=d?e.y+dy/d*step:e.y;
+    const dx=target.x-e.x,dy=target.y-e.y,d=Math.hypot(dx,dy),step=Math.min(d,(e.phase==='arrival'&&e.y<0?120:24)*dt*rate),x=d?e.x+dx/d*step:e.x,y=d?e.y+dy/d*step:e.y;
     // Safety governs entry from the sky; indoor movement must remain possible.
     if(e.phase==='descending'){e.x=x;e.y=y;}else this.moveEnemy(e,x,y);
     if(Math.hypot(target.x-e.x,target.y-e.y)<.01){

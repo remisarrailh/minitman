@@ -114,7 +114,7 @@ const respawnInBase=$('#respawn-in-base');
 try{respawnInBase.checked=localStorage.getItem('minitman-respawn-in-base')==='true';}catch{}
 game.respawnInBase=respawnInBase.checked;
 respawnInBase.onchange=()=>{game.respawnInBase=respawnInBase.checked;try{localStorage.setItem('minitman-respawn-in-base',String(game.respawnInBase));}catch{}};
-for(const [kind,setter,initial] of [['computer-limit','setComputerHitLimit',3],['respawn','setRespawnSeconds',3],['bridge-chance','setEnemyBridgeChance',25],['spawn','setEnemySpawnSeconds',30],['safety','setEnemySafetyRadius',10]]){
+for(const [kind,setter,initial] of [['computer-limit','setComputerHitLimit',3],['respawn','setRespawnSeconds',3],['bridge-chance','setEnemyBridgeChance',25],['spawn','setEnemySpawnSeconds',30],['safety','setEnemySafetyRadius',10],['speed','setEnemySpeedPercent',200],['dispersion','setEnemyDispersion',160],['chase-chance','setEnemyChaseChance',25]]){
  const slider=$('#enemy-'+kind+'-slider'),field=$('#enemy-'+kind+'-value'),key='minitman-enemy-v2-'+kind;
  function update(value){if(!Number.isFinite(value))return;const applied=game[setter](value);slider.value=field.value=String(applied);try{localStorage.setItem(key,String(applied));}catch{}}
  let saved=initial;try{const v=localStorage.getItem(key);if(v!==null&&Number.isFinite(Number(v)))saved=Number(v);}catch{}update(saved);slider.oninput=()=>update(slider.valueAsNumber);field.onchange=()=>update(field.valueAsNumber);
@@ -226,6 +226,7 @@ function render(){
  const sec=Math.ceil(game.time);$('#timer').textContent=`${Math.floor(sec/60)}:${String(sec%60).padStart(2,'0')}`;
  $('#score').textContent=String(game.score).padStart(3,'0');$('#lives').textContent=game.infiniteLives?'♥ ∞':'♥ '.repeat(game.lives)||'—';
  $('#notice').textContent=game.paused?'Partie en pause':game.fpsEntrance()?'E · Entrer dans la base ('+(game.fpsEntrance()==='roof'?'accès du toit':'étage 3')+')':game.notice;$('#missile-progress').textContent='Missiles : '+game.launchedMissiles+'/3 · Ordi : '+game.computerHits+'/'+game.computerHitLimit+' · prêts : '+game.missileSlots.filter(s=>s==='loaded').length;
+ const distribution=game.enemyDistribution();$('#enemy-distribution').textContent='Base '+distribution.base+' % · Pont '+distribution.bridge+' % · Chasse '+distribution.chase+' %';
  $('#progress').textContent=`Pont : ${game.trusses-game.bridgeDamage.truss.length}/9 triangles · ${game.beams-game.bridgeDamage.beam.length}/8 poutres${game.carrying?' · AU TREUIL':''}`;
 }
 function endOverlay(){

@@ -145,12 +145,17 @@ class FpsRoom {
   for(const e of [...g.enemies]){
    if(e.phase!=='inside')continue;
    const pos=this.enemyPosition(e);e.hitFlash=Math.max(0,(e.hitFlash||0)-dt);e.hitStun=Math.max(0,(e.hitStun||0)-dt);
-   const target=pos.level<6?this.downStair(pos.level):this.computer;
+   const hunting=e.action==='chase'&&this.active&&g.pilot;
+   const target=hunting?(pos.level===p.level?p:pos.level>p.level?this.downStair(pos.level-1):this.downStair(pos.level)):pos.level<6?this.downStair(pos.level):this.computer;
+   if(hunting){e.fpsRepath=(e.fpsRepath||0)-dt;if(e.fpsRepath<=0){e.fpsPath=null;e.fpsRepath=.5;}}
    if(!e.fpsPath?.length)e.fpsPath=this.path(pos,target);
    const waypoint=e.fpsPath[0];
-   if(waypoint&&e.hitStun===0){const dx=waypoint.x-pos.x,dz=waypoint.z-pos.z,d=Math.hypot(dx,dz);if(d<.08)e.fpsPath.shift();else this.move(pos,dx/d*Math.min(d,dt*.9),dz/d*Math.min(d,dt*.9));}
+   if(waypoint&&e.hitStun===0&&(!hunting||pos.level!==p.level||Math.hypot(p.x-pos.x,p.z-pos.z)>1.8)){const dx=waypoint.x-pos.x,dz=waypoint.z-pos.z,d=Math.hypot(dx,dz);if(d<.08)e.fpsPath.shift();else this.move(pos,dx/d*Math.min(d,dt*.9*(g.enemySpeedPercent/100)),dz/d*Math.min(d,dt*.9*(g.enemySpeedPercent/100)));}
+   if(g.enemyDispersion>0){for(const other of g.enemies){if(other===e||!other.fps||other.fps.level!==pos.level)continue;const dx=pos.x-other.fps.x,dz=pos.z-other.fps.z,d=Math.hypot(dx,dz);if(d>0&&d<.7)this.move(pos,dx/d*dt*.35*Math.min(1,g.enemyDispersion/160),dz/d*dt*.35*Math.min(1,g.enemyDispersion/160));}}
    if(Math.hypot(pos.x-target.x,pos.z-target.z)<.3){
-    if(pos.level<6){pos.level++;e.fpsPath=null;e.y=48+pos.level*13;}
+    if(hunting&&pos.level===p.level){}
+    else if(hunting&&pos.level>p.level){pos.level--;e.fpsPath=null;}
+    else if(pos.level<6){pos.level++;e.fpsPath=null;e.y=48+pos.level*13;}
     else{this.effects.push({...pos,kind:'explosion',age:0});g.destroyEnemy(e);g.computerHits++;g.notice='Ordinateur touché — '+g.computerHits+'/'+g.computerHitLimit;if(g.computerHits>=g.computerHitLimit){g.ended=true;g.notice='Fin de partie — ordinateur détruit';}continue;}
    }
    if(!this.active||!g.pilot||pos.level!==p.level)continue;
