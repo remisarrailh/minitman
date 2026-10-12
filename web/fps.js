@@ -6,7 +6,7 @@ class FpsRoom {
  constructor(game){
   this.game=game;game.fpsInterior=true;this.active=false;this.bullets=[];this.effects=[];this.cooldown=0;this.flash=0;this.recoil=0;this.hitMarker=0;this.lookY=0;
   this.exit={x:3,z:2,level:0,label:'TOIT',world:{x:519,y:31,floor:45}};this.sideExit={x:3,z:6,level:2,label:'PLATEFORME',world:{x:542,y:71,floor:85}};this.exits=[this.exit,this.sideExit];this.computer={x:19,z:15,level:6};
-  this.maps=levelData.load(typeof localStorage==='undefined'?null:localStorage).maps;
+  const data=levelData.load(typeof localStorage==='undefined'?null:localStorage);this.maps=data.maps;this.structure=data.structure;Object.assign(this.exit,this.structure.roof);Object.assign(this.sideExit,this.structure.side);Object.assign(this.computer,this.structure.computer);
  }
  get map(){return this.maps[this.player?.level||0];}
  stairs(level){
@@ -15,7 +15,7 @@ class FpsRoom {
   if(level<6)result.push({...this.downStair(level),level,kind:'down',to:level+1});
   return result;
  }
- downStair(level){return level%2===0?{x:19,z:15}:{x:3,z:3};}
+ downStair(level){return this.structure.stairs[level];}
  wall(x,z,level=this.player?.level||0){return this.maps[level]?.[Math.floor(z)]?.[Math.floor(x)]??1;}
  clear(x,z,r=.23,level=this.player?.level||0){return ![[x-r,z-r],[x+r,z-r],[x-r,z+r],[x+r,z+r]].some(([a,b])=>this.wall(a,b,level));}
  move(body,dx,dz){
@@ -24,7 +24,7 @@ class FpsRoom {
  }
  ray(x,z,dx,dz,level=this.player?.level||0){
   let mx=Math.floor(x),mz=Math.floor(z),sx=dx<0?-1:1,sz=dz<0?-1:1,tx=Math.abs(1/(dx||1e-9)),tz=Math.abs(1/(dz||1e-9)),ax=(dx<0?x-mx:mx+1-x)*tx,az=(dz<0?z-mz:mz+1-z)*tz,side=0,d=0;
-  for(let i=0;i<80;i++){if(ax<az){d=ax;ax+=tx;mx+=sx;side=0;}else{d=az;az+=tz;mz+=sz;side=1;}const cell=this.maps[level]?.[mz]?.[mx]??1;if(cell)return {d,side,cell,u:side?(x+dx*d)%1:(z+dz*d)%1};}
+  for(let i=0;i<160;i++){if(ax<az){d=ax;ax+=tx;mx+=sx;side=0;}else{d=az;az+=tz;mz+=sz;side=1;}const cell=this.maps[level]?.[mz]?.[mx]??1;if(cell)return {d,side,cell,u:side?(x+dx*d)%1:(z+dz*d)%1};}
   return {d:40,side,cell:1,u:0};
  }
  enter(){
@@ -32,8 +32,8 @@ class FpsRoom {
   const sideEntry=p.fpsEntry==='side'||(!p.fps&&p.x>=540&&p.floor===101);
   const level=sideEntry?2:Math.max(0,Math.min(6,Math.round(((p.floor??p.y+14)-62)/13)));
   delete p.fpsEntry;
-  const entry=sideEntry?{x:this.sideExit.x-1,z:this.sideExit.z}:level?this.downStair(level-1):{x:3,z:3};
-  this.player=p.fps||{x:entry.x,z:entry.z,yaw:Math.atan2(9-entry.z,11-entry.x),jump:0,vy:0,level};
+  const entry=sideEntry?this.structure.sideEntry:level?this.downStair(level-1):this.structure.entry;
+  this.player=p.fps||{x:entry.x,z:entry.z,yaw:Math.atan2(this.maps[level].length/2-entry.z,this.maps[level][0].length/2-entry.x),jump:0,vy:0,level};
   this.player.level??=level;p.fps=this.player;this.active=true;this.lookY=0;this.game.fpsActive=true;this.bullets=[];this.transition=null;
   this.game.notice='Base FPS — 7 étages, escaliers alternés ; ordinateur au niveau 7';
  }
@@ -47,7 +47,7 @@ class FpsRoom {
  floorY(level){return 48+level*13;}
  projectionFrame(level){
   const target=level<6?this.downStair(level):this.computer;
-  const entry=level?this.downStair(level-1):{x:3,z:3};
+  const entry=level?this.downStair(level-1):this.structure.entry;
   const right=level<2?513:668;
   return {entry,target,from:level===0?519:level%2?421:level===2?513:668,to:level%2?right:421,length:Math.hypot(target.x-entry.x,target.z-entry.z)};
  }
@@ -61,7 +61,7 @@ class FpsRoom {
   const progress=Math.max(0,Math.min(1,(x-f.from)/(f.to-f.from)));
   let pos={x:f.entry.x+(f.target.x-f.entry.x)*progress,z:f.entry.z+(f.target.z-f.entry.z)*progress,level};
   if(!this.clear(pos.x,pos.z,.23,level)){
-   let best=Infinity;for(let z=1;z<18;z++)for(let a=1;a<22;a++)if(this.clear(a+.5,z+.5,.23,level)){const d=Math.hypot(a+.5-pos.x,z+.5-pos.z);if(d<best){best=d;pos={x:a+.5,z:z+.5,level};}}
+   let best=Infinity;for(let z=1;z<this.maps[level].length-1;z++)for(let a=1;a<this.maps[level][0].length-1;a++)if(this.clear(a+.5,z+.5,.23,level)){const d=Math.hypot(a+.5-pos.x,z+.5-pos.z);if(d<best){best=d;pos={x:a+.5,z:z+.5,level};}}
   }
   return pos;
  }
@@ -95,16 +95,16 @@ class FpsRoom {
   this.game.notice=(stair.kind==='down'?'Descente':'Montée')+' vers étage '+(stair.to+1)+'/7';
  }
  finishStairs(stair){
-  const p=this.player;p.level=stair.to;p.x=stair.x;p.z=stair.z;p.yaw=Math.atan2(9-p.z,11-p.x);p.jump=0;p.vy=0;p.stairLock={x:p.x,z:p.z};
+  const p=this.player;p.level=stair.to;p.x=stair.x;p.z=stair.z;p.yaw=Math.atan2(this.maps[p.level].length/2-p.z,this.maps[p.level][0].length/2-p.x);p.jump=0;p.vy=0;p.stairLock={x:p.x,z:p.z};
   Object.assign(this.game.pilot,{floor:62+p.level*13,y:48+p.level*13});
   this.game.invincible=Math.max(this.game.invincible,1);this.lookY=0;
  }
  path(body,target){
-  const map=this.maps[body.level||0],start=[Math.floor(body.x),Math.floor(body.z)],goal=[Math.floor(target.x),Math.floor(target.z)],key=(x,z)=>z*23+x;
+  const map=this.maps[body.level||0],start=[Math.floor(body.x),Math.floor(body.z)],goal=[Math.floor(target.x),Math.floor(target.z)],width=map[0].length,key=(x,z)=>z*width+x;
   const queue=[start],parents=new Map([[key(...start),null]]);let end=null;
   for(let i=0;i<queue.length;i++){const [x,z]=queue[i];if(x===goal[0]&&z===goal[1]){end=key(x,z);break;}for(const [dx,dz]of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,nz=z+dz,k=key(nx,nz);if(!map[nz]?.[nx]&&!parents.has(k)){parents.set(k,key(x,z));queue.push([nx,nz]);}}}
   if(end===null)return [];
-  const route=[];while(parents.get(end)!==null){route.push({x:end%23+.5,z:Math.floor(end/23)+.5});end=parents.get(end);}return route.reverse().concat([{x:target.x,z:target.z}]);
+  const route=[];while(parents.get(end)!==null){route.push({x:end%width+.5,z:Math.floor(end/width)+.5});end=parents.get(end);}return route.reverse().concat([{x:target.x,z:target.z}]);
  }
  killPlayer(){
   const count=this.game.bonuses.length;
@@ -187,6 +187,23 @@ class FpsRoom {
   this.player={x:3,z:3,level,yaw:Math.atan2(6,8),jump:0};this.lookY=0;
   try{this.render(ctx,width,height,sprites,scenes);}finally{this.player=saved;this.lookY=look;}
  }
+ drawAccessTextures(c,p,horizon,scale,depth){
+  const points=levelData.points(p.level,{structure:this.structure});
+  const project=(x,z,height)=>{const rx=x-p.x,rz=z-p.z,d=rx*Math.cos(p.yaw)+rz*Math.sin(p.yaw);return {x:420+(-rx*Math.sin(p.yaw)+rz*Math.cos(p.yaw))*scale/d,y:horizon-height*scale/d,d};};
+  for(const point of points){if(["entry","sideEntry"].includes(point.id))continue;
+   // Entries and exits share a physical surface; no floating sprites.
+   const ceiling=levelData.surface(point)==='ceiling';let center={x:point.x,z:point.z},tangent={x:1,z:0};
+   if(!ceiling){const casts=[[1,0],[-1,0],[0,1],[0,-1]].map(([dx,dz])=>({dx,dz,d:(()=>{for(let distance=.05;distance<90;distance+=.05)if(this.wall(point.x+dx*distance,point.z+dz*distance,p.level)===1)return distance;return 90;})()})).sort((a,b)=>a.d-b.d),hit=casts[0];center={x:point.x+hit.dx*(hit.d-.04),z:point.z+hit.dz*(hit.d-.04)};tangent={x:-hit.dz,z:hit.dx};}
+   const steps=12;let visible=false;
+   for(let v=0;v<steps;v++)for(let u=0;u<steps;u++){
+    const at=(a,b)=>ceiling?project(center.x+(a/steps-.5)*1.3,center.z+(b/steps-.5)*1.3,1.43):project(center.x+tangent.x*(a/steps-.5)*1.3,center.z+tangent.z*(a/steps-.5)*1.3,1.2-b/steps*2.25);
+    const corners=[at(u,v),at(u+1,v),at(u+1,v+1),at(u,v+1)],mid=at(u+.5,v+.5);if(corners.some(q=>q.d<=.1)||mid.x<0||mid.x>=840||mid.d>depth[Math.floor(mid.x/2)]+.15)continue;
+    const frame=u<2||u>9||v<2||v>9,computer=point.id==='computer',rung=point.id==='stairs'&&v%3===0;
+    c.fillStyle=frame?'#70caff':computer?(v%3===0?'#72f3bd':'#163c36'):rung?'#cad9e8':'#102631';c.beginPath();corners.forEach((q,i)=>i?c.lineTo(q.x,q.y):c.moveTo(q.x,q.y));c.closePath();c.fill();visible=true;
+   }
+   const marker=project(center.x,center.z,ceiling?1.43:1.25);if(visible&&marker.d<8&&marker.x>0&&marker.x<840){c.textAlign='center';c.font='bold 12px monospace';c.fillStyle='#a6deff';c.fillText(point.label+' · '+(ceiling?'PLAFOND':'MUR'),marker.x,Math.max(18,marker.y-12));}
+  }
+ }
  render(ctx,width,height,sprites,scenes){
   const p=this.player;if(!p)return;const w=840,h=422;
   if(!this.buffer){this.buffer=document.createElement('canvas');this.buffer.width=w;this.buffer.height=h;this.tint=document.createElement('canvas');this.tint.width=14;this.tint.height=14;}
@@ -203,8 +220,8 @@ class FpsRoom {
    c.fillStyle='#0005';for(const fraction of [.15,.3,.6,.75,.9])c.fillRect(x,top+size*fraction,2,2);
    if(hit.u<.06){c.fillStyle='#0005';c.fillRect(x,top,2,size);}if(hit.cell>=3){c.fillStyle='#b3bfaa66';c.fillRect(x,top+size*.5,2,3);}
   }
-  const objects=[...this.stairs(p.level).map(s=>({...s,kind:'stair',label:s.kind==='down'?'DESCENDRE':'MONTER',to:s.to}))];
-  for(const exit of this.exits)if(exit.level===p.level)objects.push({...exit,kind:'exit'});if(p.level===6)objects.push({...this.computer,kind:'computer'});
+  this.drawAccessTextures(c,p,horizon,scale,depth);
+  const objects=[];
   for(const e of this.game.enemies)if(e.phase==='inside'&&this.enemyPosition(e).level===p.level)objects.push({...e.fps,kind:'enemy',enemy:e});
   for(const b of this.bullets)if((b.level||0)===p.level)objects.push({...b,kind:'bullet'});
   for(const [kind,items]of [['mine',this.game.mines],['bonus',this.game.bonuses]])for(const item of items)if(item.fps&&(item.fps.level||0)===p.level)objects.push({...item.fps,kind});
@@ -234,7 +251,7 @@ class FpsRoom {
   if(this.hitMarker){for(const [x,y]of [[-1,-1],[1,-1],[-1,1],[1,1]]){c.moveTo(w/2+x*7,h/2+y*7);c.lineTo(w/2+x*13,h/2+y*13);}}
   else{c.moveTo(w/2-7,h/2);c.lineTo(w/2+7,h/2);c.moveTo(w/2,h/2-7);c.lineTo(w/2,h/2+7);}c.stroke();
   if(this.hitMarker){c.fillStyle='#ffeb78';c.font='bold 14px monospace';c.textAlign='center';c.fillText('IMPACT',w/2,h/2-24);}
-  c.fillStyle='#0b0f16e6';c.fillRect(12,12,230,74);c.font='bold 14px monospace';c.textAlign='left';c.fillStyle='#73e3b6';c.fillText('BASE · ÉTAGE '+(p.level+1)+' / 7',20,33);c.fillStyle='#fff';c.font='12px monospace';c.fillText('Ordi '+this.game.computerHits+'/'+this.game.computerHitLimit+' · objectif au niveau 7',20,54);c.fillStyle='#a6bad0';c.fillText(p.level<6?'Escalier '+(p.level%2===0?'au fond à droite':'à gauche'):'Activez l’ordinateur · E',20,74);
+  c.fillStyle='#0b0f16e6';c.fillRect(12,12,230,74);c.font='bold 14px monospace';c.textAlign='left';c.fillStyle='#73e3b6';c.fillText('BASE · ÉTAGE '+(p.level+1)+' / 7',20,33);c.fillStyle='#fff';c.font='12px monospace';c.fillText('Ordi '+this.game.computerHits+'/'+this.game.computerHitLimit+' · objectif au niveau 7',20,54);c.fillStyle='#a6bad0';c.fillText(p.level<6?'Rejoignez l’escalier ↓':'Activez l’ordinateur · E',20,74);
   c.fillStyle='#000b';c.fillRect(0,h-22,w,22);c.fillStyle='#c9d5df';c.font='11px monospace';c.textAlign='center';c.fillText('ZQSD · souris : viser · clic : tirer · escaliers : marcher / E · Espace : saut · Ctrl : accroupi',w/2,h-7);
   if(this.transition){c.fillStyle='#0009';c.fillRect(0,0,w,h);c.fillStyle='#fff';c.font='bold 22px monospace';c.fillText('ESCALIER · ÉTAGE '+(this.transition.stair.to+1),w/2,h/2);}
   ctx.drawImage(this.buffer,0,0,width,height);
