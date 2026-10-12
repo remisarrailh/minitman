@@ -28,3 +28,5 @@ Bouton « Plein écran » dans le jeu. Les contrôles tactiles sont superposés 
 Le bâtiment utilise la vue panoramique 2D et les ascenseurs définis dans l’éditeur de zones. À pied, Q/D pour marcher, Z pour sauter ou monter près d’un ascenseur, S pour descendre ou s’accroupir, E pour embarquer/débarquer ou activer l’ordinateur, clic pour tirer. Les cartes FPS ne sont plus chargées par le jeu ni incluses dans dist.
 
 Avec `?dev=true`, « Activation de la loupe » contient un slider « Vitesse hélico en loupe » de 1 à 100 % de la vitesse normale (25 % par défaut), enregistré localement. Les seuils Y du pont et du ravitaillement restent réglables. Les réglages des ennemis sont conservés : vitesse, dispersion et proportions base/pont/chasse.
+
+En loupe, maintenir Maj rétablit la vitesse normale de l’hélicoptère ; relâcher Maj réapplique le pourcentage du slider. Hors loupe, Maj conserve le déplacement précis.
