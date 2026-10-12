@@ -101,10 +101,10 @@ $('#jump-height-slider').addEventListener('input',e=>jumpHeightUI(Number(e.targe
 $('#jump-height-value').addEventListener('input',e=>{const value=e.target.valueAsNumber;if(Number.isFinite(value)&&value>=10&&value<=400){game.setJumpHeightPercent(value);$('#jump-height-slider').value=String(game.jumpHeightPercent);try{localStorage.setItem('minitman-jump-height-percent-v4',String(game.jumpHeightPercent));}catch{}}});
 $('#jump-height-value').addEventListener('change',e=>jumpHeightUI(e.target.valueAsNumber));
 $('#jump-height-reset').onclick=()=>jumpHeightUI(10);
-let loupeSpeedPercent=25;
-function loupeSpeedUI(value){if(!Number.isFinite(value))value=25;loupeSpeedPercent=Math.round(Math.max(1,Math.min(100,value)));$('#loupe-speed-slider').value=$('#loupe-speed-value').value=String(loupeSpeedPercent);try{localStorage.setItem('minitman-loupe-speed-v1',String(loupeSpeedPercent));}catch{}}
-try{const saved=localStorage.getItem('minitman-loupe-speed-v1');if(saved!==null)loupeSpeedPercent=Number(saved);}catch{}
-loupeSpeedUI(loupeSpeedPercent);$('#loupe-speed-slider').oninput=e=>loupeSpeedUI(e.target.valueAsNumber);$('#loupe-speed-value').oninput=e=>{if(Number.isFinite(e.target.valueAsNumber))loupeSpeedUI(e.target.valueAsNumber);};$('#loupe-speed-value').onchange=e=>loupeSpeedUI(e.target.valueAsNumber);
+let slowSpeedPercent=25;
+function slowSpeedUI(value){if(!Number.isFinite(value))value=25;slowSpeedPercent=Math.round(Math.max(1,Math.min(100,value)));$('#shift-speed-slider').value=$('#shift-speed-value').value=String(slowSpeedPercent);try{localStorage.setItem('minitman-loupe-speed-v1',String(slowSpeedPercent));}catch{}}
+try{const saved=localStorage.getItem('minitman-loupe-speed-v1');if(saved!==null)slowSpeedPercent=Number(saved);}catch{}
+slowSpeedUI(slowSpeedPercent);$('#shift-speed-slider').oninput=e=>slowSpeedUI(e.target.valueAsNumber);$('#shift-speed-value').oninput=e=>{if(Number.isFinite(e.target.valueAsNumber))slowSpeedUI(e.target.valueAsNumber);};$('#shift-speed-value').onchange=e=>slowSpeedUI(e.target.valueAsNumber);
 const loupeThreshold={bridge:135,stock:50};
 for(const kind of ['bridge','stock']){
  const storageKey='minitman-loupe-y-v2-'+kind,slider=$('#loupe-'+kind+'-slider'),field=$('#loupe-'+kind+'-value');
@@ -132,8 +132,8 @@ function input(){
  const onFoot=Boolean(game.pilot),keyboard=true;
  const x=(keys.has('ArrowRight')||keyboard&&keys.has('KeyD')?1:0)-(keys.has('ArrowLeft')||keyboard&&keys.has('KeyQ')?1:0);
  const y=(keys.has('ArrowDown')||keyboard&&keys.has('KeyS')?1:0)-(keys.has('ArrowUp')||keyboard&&keys.has('KeyZ')?1:0);
- const shift=keys.has('ShiftLeft')||keys.has('ShiftRight'),inLoupe=!onFoot&&magnifierActive(game.worldPosition());
- const fine=inLoupe?(shift?loupeSpeedPercent/100:1):(shift?.2:1);
+ const shift=keys.has('ShiftLeft')||keys.has('ShiftRight');
+ const fine=shift?slowSpeedPercent/100:1;
  const m=mouse.sample(onFoot?{x:game.pilot.x-11,y:game.pilot.y}:game.worldPosition(),game.carrying);
  const manual=x||y||joy.x||joy.y||axisTap.x||axisTap.y;
  return {up:joy.y<-.5||keyboard&&(y<0||axisTap.y<0),down:joy.y>.5||keyboard&&(y>0||axisTap.y>0),jump:taps.jump||keys.has('KeyZ')||pointers.jump.size>0,crouch:taps.crouch||keyboard&&(y>0||axisTap.y>0)||joy.y>.5||pointers.crouch.size>0,interact:taps.interact,cockpit:taps.cockpit,

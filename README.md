@@ -30,3 +30,5 @@ Le bâtiment utilise la vue panoramique 2D et les ascenseurs définis dans l’�
 Avec `?dev=true`, « Activation de la loupe » contient un slider « Vitesse hélico en loupe » de 1 à 100 % de la vitesse normale (25 % par défaut), enregistré localement. Les seuils Y du pont et du ravitaillement restent réglables. Les réglages des ennemis sont conservés : vitesse, dispersion et proportions base/pont/chasse.
 
 En loupe, l’hélicoptère vole à vitesse normale ; maintenir Maj applique la vitesse lente du slider (25 % par défaut), et relâcher Maj rétablit la vitesse normale. Hors loupe, Maj conserve le déplacement précis.
+
+La loupe ne change plus la vitesse. Maintenir Maj ralentit les déplacements partout (avec ou sans loupe), selon le slider « Vitesse lente (Maj) », à 25 % par défaut. Relâcher Maj rétablit la vitesse normale.
