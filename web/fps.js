@@ -1,18 +1,12 @@
 /* Seven spacious FPS floors, connected by alternating staircases. */
 (function(root){
 'use strict';
+const levelData=typeof module!=='undefined'?require('./fps-level.js'):root.FpsLevel;
 class FpsRoom {
  constructor(game){
   this.game=game;game.fpsInterior=true;this.active=false;this.bullets=[];this.effects=[];this.cooldown=0;this.flash=0;this.recoil=0;this.hitMarker=0;this.lookY=0;
   this.exit={x:3,z:2,level:0,label:'TOIT',world:{x:519,y:31,floor:45}};this.sideExit={x:3,z:6,level:2,label:'PLATEFORME',world:{x:542,y:71,floor:85}};this.exits=[this.exit,this.sideExit];this.computer={x:19,z:15,level:6};
-  this.maps=Array.from({length:7},(_,level)=>this.makeMap(level));
- }
- makeMap(level){
-  const map=Array.from({length:19},(_,z)=>Array.from({length:23},(_,x)=>x===0||x===22||z===0||z===18?1:0));
-  for(const [x,z,type] of [[6,7,2],[16,11,2],[15,6,3],[7,12,3],[5,10,4],[17,8,4]]){
-   const dz=level%2;map[z+dz][x]=type;if(type>=3)map[z+dz][x+1]=type;
-  }
-  return map;
+  this.maps=levelData.load(typeof localStorage==='undefined'?null:localStorage).maps;
  }
  get map(){return this.maps[this.player?.level||0];}
  stairs(level){

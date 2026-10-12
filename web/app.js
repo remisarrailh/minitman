@@ -5,6 +5,7 @@ const {Game,rowAddress,triple,pixelX}=MinitCore;
 const game=new Game(MINIT_ASSETS),$=s=>document.querySelector(s),canvas=$('#game'),ctx=canvas.getContext('2d');
 game.continuous=true;game.skyHeight=160;game.fpsInterior=true;
 const fpsRoom=new FpsRoom(game);
+let fpsTestRequested=new URLSearchParams(location.search).get('fps-test')==='true';
 let fpsDebug=false;const debugWorld=document.createElement('canvas');const debugCtx=debugWorld.getContext('2d');
 try{const saved=JSON.parse(localStorage.getItem("minitman-custom-zones"));if(saved&&Array.isArray(saved.collisions)&&Array.isArray(saved.teleports))game.customZones=saved;}catch{}
 const screen=document.createElement('canvas');screen.width=280;screen.height=192;const gfx=screen.getContext('2d');
@@ -237,6 +238,8 @@ function endOverlay(){
  $('#start').textContent='Rejouer';$('#overlay').hidden=false;
 }
 function frame(now){
+ if(fpsTestRequested&&artworkReady){fpsTestRequested=false;if(start()){const level=Math.max(0,Math.min(6,Math.round(Number(new URLSearchParams(location.search).get('fps-floor'))||0)));game.pilot={x:519,y:48+level*13,floor:62+level*13,inside:true,vy:0,facing:1,pose:'idle',animation:0};game.scene=2;fpsRoom.enter();fpsRoom.player.stairLock={x:fpsRoom.player.x,z:fpsRoom.player.z};}}
+
  const dt=Math.min((now-last)/1000,.1);last=now;
  if(started&&!game.paused){accumulator+=dt;while(accumulator>=1/60){fpsRoom.sync();
  if(fpsRoom.active){const control={forward:(keys.has('KeyZ')||keys.has('ArrowUp')?1:0)-(keys.has('KeyS')||keys.has('ArrowDown')?1:0)-joy.y,strafe:(keys.has('KeyD')?1:0)-(keys.has('KeyQ')?1:0)+joy.x,turn:(keys.has('ArrowRight')?1:0)-(keys.has('ArrowLeft')?1:0),fire:Boolean(mouse.mask&1)||pointers.fire.size>0||taps.fire,crouch:keys.has('ControlLeft')||keys.has('ControlRight')||pointers.crouch.size>0,jump:keys.has('Space')||pointers.jump.size>0,interact:taps.interact||taps.cockpit};game.step({});fpsRoom.step(control,1/60);}else{game.step(input());fpsRoom.step({},1/60);}fpsRoom.sync();Object.keys(taps).forEach(k=>taps[k]=false);axisTap.x=axisTap.y=0;accumulator-=1/60;}}

@@ -36,3 +36,7 @@ Les robots intérieurs utilisent une simulation commune et poursuivent leur rout
 ### Réglages des ennemis
 
 Avec `?dev=true`, la section Apparition et comportement des ennemis permet de régler la vitesse (200 % par défaut), la dispersion verticale dans le ciel (160 pixels), la part d’attaque du pont et la part de chasse du joueur. La part base complète le total à 100 % : par défaut 50 % base, 25 % pont, 25 % chasse. Les chasseurs poursuivent le joueur dehors et dans la base, où ils peuvent prendre les escaliers dans les deux sens. Les réglages sont conservés localement.
+
+### Éditeur de niveau FPS
+
+Le lien « Éditeur FPS » ouvre une grille en vue de dessus pour chacun des sept étages. Choisir Mur, Pilier, Caisse, Machine ou Gomme puis cliquer/glisser. Ctrl+Z annule. Les escaliers, portes, ordinateur et cases nécessaires à leur accès sont protégés. L’application et l’import vérifient que tous les accès restent reliés. « Appliquer au jeu » enregistre localement le niveau ; recharger le jeu pour le prendre en compte. « Tester cet étage » ouvre directement la vue FPS à l’étage sélectionné. Exporter/importer le JSON pour conserver ou partager une carte.
