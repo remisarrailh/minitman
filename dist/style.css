@@ -38,3 +38,5 @@ html:not(.dev-mode) [data-dev]{display:none!important}
 body.fps-mode .scene-labels{display:none}body.fps-mode #game{cursor:crosshair;touch-action:none}
 
 #placement-guide{position:static;max-width:100%;padding:7px 8px;border:1px solid #ffd16c;border-radius:7px;background:#17130eed;color:#ffd16c;font:bold 11px ui-monospace,monospace;pointer-events:none}#placement-guide.ok{color:#9fffd0;border-color:#72e5a9;background:#102a20ed}#placement-guide[hidden]{display:none}
+
+.magnifier-heading{display:flex;align-items:center;justify-content:space-between;gap:5px;padding:6px;background:#172b27}#magnifier .magnifier-heading span{padding:0;white-space:nowrap;font-size:9px}.slow-hint{display:flex;align-items:center;gap:5px;padding:5px 6px;border:1px solid #ffe08a;border-radius:5px;background:#ffe08a;color:#201800;font:700 12px system-ui;white-space:nowrap}.slow-hint kbd{padding:2px 3px;border:1px solid #201800;border-radius:3px;background:#201800;color:#fff4c6;font:800 11px ui-monospace,monospace}
