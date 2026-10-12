@@ -102,7 +102,7 @@ class FpsRoom {
  path(body,target){
   const map=this.maps[body.level||0],start=[Math.floor(body.x),Math.floor(body.z)],goal=[Math.floor(target.x),Math.floor(target.z)],width=map[0].length,key=(x,z)=>z*width+x;
   const queue=[start],parents=new Map([[key(...start),null]]);let end=null;
-  for(let i=0;i<queue.length;i++){const [x,z]=queue[i];if(x===goal[0]&&z===goal[1]){end=key(x,z);break;}for(const [dx,dz]of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,nz=z+dz,k=key(nx,nz);if(!map[nz]?.[nx]&&!parents.has(k)){parents.set(k,key(x,z));queue.push([nx,nz]);}}}
+  for(let i=0;i<queue.length;i++){const [x,z]=queue[i];if(x===goal[0]&&z===goal[1]){end=key(x,z);break;}for(const [dx,dz]of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,nz=z+dz,k=key(nx,nz);if(map[nz]?.[nx]===0&&!parents.has(k)){parents.set(k,key(x,z));queue.push([nx,nz]);}}}
   if(end===null)return [];
   const route=[];while(parents.get(end)!==null){route.push({x:end%width+.5,z:Math.floor(end/width)+.5});end=parents.get(end);}return route.reverse().concat([{x:target.x,z:target.z}]);
  }

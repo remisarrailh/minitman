@@ -50,3 +50,5 @@ Les accès se déplacent aussi directement par glisser-déposer en mode Sélecti
 Le redimensionnement manuel est remplacé par une grille extensible. Dessiner au-delà du plan agrandit automatiquement la carte, aussi vers la gauche et le haut, en conservant les positions relatives des accès. « Déplacer la vue » ou le bouton central déplace le plan ; la molette zoome autour du curseur et « Recentrer » retrouve les accès. Les anciens murs restent dessinés et peuvent être effacés pour agrandir les pièces. Les tracés continus et Ctrl+Z sont conservés.
 
 Chaque passage extérieur est maintenant un seul accès « Entrée / sortie ». Le repère d’apparition séparé a été retiré : sa position est calculée automatiquement dans une case libre juste à côté du passage, y compris lors de la migration des anciennes cartes.
+
+L’extension remplit uniquement des cases vides : elle ne crée plus de bordures de murs automatiques. Les murs présents dans les cartes restent éditables. La gomme sur une case vide n’agrandit pas le plan, et les cartes avec des bords ouverts sont acceptées.
