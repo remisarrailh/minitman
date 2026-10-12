@@ -119,7 +119,7 @@ class FpsRoom {
   if(this.transition){this.transition.remaining-=dt;g.invincible=Math.max(g.invincible,1+dt);if(this.transition.remaining<=0){this.finishStairs(this.transition.stair);this.transition=null;}}
   else{
    p.yaw+=(input.turn||0)*dt*1.8;
-   const speed=3.2*(g.pilotSpeedPercent/190)*(input.crouch?.4:1),forward=input.forward||0,strafe=input.strafe||0,n=Math.max(1,Math.hypot(forward,strafe));
+   const speed=3.2*(g.pilotSpeedPercent/190)*(input.crouch?.4:input.sprint?1.7:1),forward=input.forward||0,strafe=input.strafe||0,n=Math.max(1,Math.hypot(forward,strafe));
    this.move(p,(Math.cos(p.yaw)*forward-Math.sin(p.yaw)*strafe)*speed*dt/n,(Math.sin(p.yaw)*forward+Math.cos(p.yaw)*strafe)*speed*dt/n);
    g.pilot.pose=input.crouch?'crouch':'idle';
    if(input.jump&&!this.jumpHeld&&p.jump===0)p.vy=3.5;this.jumpHeld=input.jump;p.vy-=9*dt;p.jump=Math.max(0,p.jump+p.vy*dt);if(p.jump===0)p.vy=0;
@@ -252,7 +252,7 @@ class FpsRoom {
   else{c.moveTo(w/2-7,h/2);c.lineTo(w/2+7,h/2);c.moveTo(w/2,h/2-7);c.lineTo(w/2,h/2+7);}c.stroke();
   if(this.hitMarker){c.fillStyle='#ffeb78';c.font='bold 14px monospace';c.textAlign='center';c.fillText('IMPACT',w/2,h/2-24);}
   c.fillStyle='#0b0f16e6';c.fillRect(12,12,230,74);c.font='bold 14px monospace';c.textAlign='left';c.fillStyle='#73e3b6';c.fillText('BASE · ÉTAGE '+(p.level+1)+' / 7',20,33);c.fillStyle='#fff';c.font='12px monospace';c.fillText('Ordi '+this.game.computerHits+'/'+this.game.computerHitLimit+' · objectif au niveau 7',20,54);c.fillStyle='#a6bad0';c.fillText(p.level<6?'Rejoignez l’escalier ↓':'Activez l’ordinateur · E',20,74);
-  c.fillStyle='#000b';c.fillRect(0,h-22,w,22);c.fillStyle='#c9d5df';c.font='11px monospace';c.textAlign='center';c.fillText('ZQSD · souris : viser · clic : tirer · escaliers : marcher / E · Espace : saut · Ctrl : accroupi',w/2,h-7);
+  c.fillStyle='#000b';c.fillRect(0,h-22,w,22);c.fillStyle='#c9d5df';c.font='11px monospace';c.textAlign='center';c.fillText('ZQSD · souris : viser · clic : tirer · escaliers : marcher / E · Maj : courir · Espace : saut · Ctrl : accroupi',w/2,h-7);
   if(this.transition){c.fillStyle='#0009';c.fillRect(0,0,w,h);c.fillStyle='#fff';c.font='bold 22px monospace';c.fillText('ESCALIER · ÉTAGE '+(this.transition.stair.to+1),w/2,h/2);}
   ctx.drawImage(this.buffer,0,0,width,height);
  }

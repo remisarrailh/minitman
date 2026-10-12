@@ -242,7 +242,7 @@ function frame(now){
 
  const dt=Math.min((now-last)/1000,.1);last=now;
  if(started&&!game.paused){accumulator+=dt;while(accumulator>=1/60){fpsRoom.sync();
- if(fpsRoom.active){const control={forward:(keys.has('KeyZ')||keys.has('ArrowUp')?1:0)-(keys.has('KeyS')||keys.has('ArrowDown')?1:0)-joy.y,strafe:(keys.has('KeyD')?1:0)-(keys.has('KeyQ')?1:0)+joy.x,turn:(keys.has('ArrowRight')?1:0)-(keys.has('ArrowLeft')?1:0),fire:Boolean(mouse.mask&1)||pointers.fire.size>0||taps.fire,crouch:keys.has('ControlLeft')||keys.has('ControlRight')||pointers.crouch.size>0,jump:keys.has('Space')||pointers.jump.size>0,interact:taps.interact||taps.cockpit};game.step({});fpsRoom.step(control,1/60);}else{game.step(input());fpsRoom.step({},1/60);}fpsRoom.sync();Object.keys(taps).forEach(k=>taps[k]=false);axisTap.x=axisTap.y=0;accumulator-=1/60;}}
+ if(fpsRoom.active){const control={sprint:keys.has('ShiftLeft')||keys.has('ShiftRight'),forward:(keys.has('KeyZ')||keys.has('ArrowUp')?1:0)-(keys.has('KeyS')||keys.has('ArrowDown')?1:0)-joy.y,strafe:(keys.has('KeyD')?1:0)-(keys.has('KeyQ')?1:0)+joy.x,turn:(keys.has('ArrowRight')?1:0)-(keys.has('ArrowLeft')?1:0),fire:Boolean(mouse.mask&1)||pointers.fire.size>0||taps.fire,crouch:keys.has('ControlLeft')||keys.has('ControlRight')||pointers.crouch.size>0,jump:keys.has('Space')||pointers.jump.size>0,interact:taps.interact||taps.cockpit};game.step({});fpsRoom.step(control,1/60);}else{game.step(input());fpsRoom.step({},1/60);}fpsRoom.sync();Object.keys(taps).forEach(k=>taps[k]=false);axisTap.x=axisTap.y=0;accumulator-=1/60;}}
  else accumulator=0;
  for(const event of game.events.splice(0))tone(event);
  render();if(started&&(game.ended))endOverlay();requestAnimationFrame(frame);
@@ -254,7 +254,8 @@ $('#start').onclick=start;$('#new').onclick=start;$('#pause').onclick=pause;
 $('.display').addEventListener('click',e=>{
  if(!started||game.ended)start();
  else if(game.paused){pause();canvas.focus({preventScroll:true});}
- if(fpsRoom.active&&e.target===canvas&&canvas.requestPointerLock)canvas.requestPointerLock()?.catch(()=>{});
+ canvas.focus({preventScroll:true});
+ if(fpsRoom.active&&!game.paused&&!e.target.closest('button')&&document.pointerLockElement!==canvas&&canvas.requestPointerLock){try{canvas.requestPointerLock()?.catch(()=>{});}catch{}}
 });
 $('#training').onclick=()=>{if(!start())return;Object.assign(game,{scene:1,x:156,y:79,carrying:'truss',time:266,notice:'Position vérifiée : appuyez sur C ou Poser pour fixer la pièce.'});};
 $('#bridge-attack-training').onclick=()=>{if(!started||game.ended){if(!start())return;}game.spawnEnemy(true);};
@@ -271,7 +272,7 @@ function mouseButtons(mask){const edge=mouse.buttons(mask,game.carrying);if(edge
 canvas.addEventListener('mousemove',e=>{if(!started||game.paused)return;mouse.move(e.clientX,e.clientY,controlRect());mouseButtons(e.buttons);});
 // mousedown is needed: pointerdown is not emitted for the second mouse button.
 canvas.addEventListener('mousedown',e=>{if(!mouse.enabled||!started||game.paused||![0,2].includes(e.button))return;e.preventDefault();canvas.focus({preventScroll:true});mouse.move(e.clientX,e.clientY,controlRect());mouseButtons(e.buttons);});
-canvas.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'&&mouse.enabled&&started&&!game.paused)canvas.setPointerCapture(e.pointerId);});
+canvas.addEventListener('pointerdown',e=>{canvas.focus({preventScroll:true});if(e.pointerType==='mouse'&&mouse.enabled&&started&&!game.paused)canvas.setPointerCapture(e.pointerId);});
 window.addEventListener('mouseup',e=>{mouseButtons(e.buttons);if(!e.buttons){const r=canvas.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)mouse.reset();}});
 canvas.addEventListener('mouseleave',()=>{if(!(mouse.mask&2))mouse.reset();});
 canvas.addEventListener('pointercancel',()=>mouse.reset());

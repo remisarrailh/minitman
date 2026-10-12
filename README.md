@@ -52,3 +52,5 @@ Le redimensionnement manuel est remplacé par une grille extensible. Dessiner au
 Chaque passage extérieur est maintenant un seul accès « Entrée / sortie ». Le repère d’apparition séparé a été retiré : sa position est calculée automatiquement dans une case libre juste à côté du passage, y compris lors de la migration des anciennes cartes.
 
 L’extension remplit uniquement des cases vides : elle ne crée plus de bordures de murs automatiques. Les murs présents dans les cartes restent éditables. La gomme sur une case vide n’agrandit pas le plan, et les cartes avec des bords ouverts sont acceptées.
+
+En FPS, maintenir Maj permet de courir à 170 % de la vitesse de marche ; Ctrl reste prioritaire pour s’accroupir. Un clic dans l’écran du jeu lui redonne toujours le focus clavier et demande la capture de souris en FPS, lorsque le navigateur le permet.
