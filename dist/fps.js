@@ -24,7 +24,7 @@ class FpsRoom {
  }
  ray(x,z,dx,dz,level=this.player?.level||0){
   let mx=Math.floor(x),mz=Math.floor(z),sx=dx<0?-1:1,sz=dz<0?-1:1,tx=Math.abs(1/(dx||1e-9)),tz=Math.abs(1/(dz||1e-9)),ax=(dx<0?x-mx:mx+1-x)*tx,az=(dz<0?z-mz:mz+1-z)*tz,side=0,d=0;
-  for(let i=0;i<160;i++){if(ax<az){d=ax;ax+=tx;mx+=sx;side=0;}else{d=az;az+=tz;mz+=sz;side=1;}const cell=this.maps[level]?.[mz]?.[mx]??1;if(cell)return {d,side,cell,u:side?(x+dx*d)%1:(z+dz*d)%1};}
+  for(let i=0;i<this.maps[level].length+this.maps[level][0].length+4;i++){if(ax<az){d=ax;ax+=tx;mx+=sx;side=0;}else{d=az;az+=tz;mz+=sz;side=1;}const cell=this.maps[level]?.[mz]?.[mx]??1;if(cell)return {d,side,cell,u:side?(x+dx*d)%1:(z+dz*d)%1};}
   return {d:40,side,cell:1,u:0};
  }
  enter(){
@@ -193,7 +193,7 @@ class FpsRoom {
   for(const point of points){if(["entry","sideEntry"].includes(point.id))continue;
    // Entries and exits share a physical surface; no floating sprites.
    const ceiling=levelData.surface(point)==='ceiling';let center={x:point.x,z:point.z},tangent={x:1,z:0};
-   if(!ceiling){const casts=[[1,0],[-1,0],[0,1],[0,-1]].map(([dx,dz])=>({dx,dz,d:(()=>{for(let distance=.05;distance<90;distance+=.05)if(this.wall(point.x+dx*distance,point.z+dz*distance,p.level)===1)return distance;return 90;})()})).sort((a,b)=>a.d-b.d),hit=casts[0];center={x:point.x+hit.dx*(hit.d-.04),z:point.z+hit.dz*(hit.d-.04)};tangent={x:-hit.dz,z:hit.dx};}
+   if(!ceiling){const casts=[[1,0],[-1,0],[0,1],[0,-1]].map(([dx,dz])=>({dx,dz,d:(()=>{for(let distance=.05;distance<Math.max(this.maps[p.level].length,this.maps[p.level][0].length)+2;distance+=.05)if(this.wall(point.x+dx*distance,point.z+dz*distance,p.level)===1)return distance;return 90;})()})).sort((a,b)=>a.d-b.d),hit=casts[0];center={x:point.x+hit.dx*(hit.d-.04),z:point.z+hit.dz*(hit.d-.04)};tangent={x:-hit.dz,z:hit.dx};}
    const steps=12;let visible=false;
    for(let v=0;v<steps;v++)for(let u=0;u<steps;u++){
     const at=(a,b)=>ceiling?project(center.x+(a/steps-.5)*1.3,center.z+(b/steps-.5)*1.3,1.43):project(center.x+tangent.x*(a/steps-.5)*1.3,center.z+tangent.z*(a/steps-.5)*1.3,1.2-b/steps*2.25);
