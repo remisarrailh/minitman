@@ -133,7 +133,7 @@ function input(){
  const x=(keys.has('ArrowRight')||keyboard&&keys.has('KeyD')?1:0)-(keys.has('ArrowLeft')||keyboard&&keys.has('KeyQ')?1:0);
  const y=(keys.has('ArrowDown')||keyboard&&keys.has('KeyS')?1:0)-(keys.has('ArrowUp')||keyboard&&keys.has('KeyZ')?1:0);
  const shift=keys.has('ShiftLeft')||keys.has('ShiftRight'),inLoupe=!onFoot&&magnifierActive(game.worldPosition());
- const fine=inLoupe?(shift?1:loupeSpeedPercent/100):(shift?.2:1);
+ const fine=inLoupe?(shift?loupeSpeedPercent/100:1):(shift?.2:1);
  const m=mouse.sample(onFoot?{x:game.pilot.x-11,y:game.pilot.y}:game.worldPosition(),game.carrying);
  const manual=x||y||joy.x||joy.y||axisTap.x||axisTap.y;
  return {up:joy.y<-.5||keyboard&&(y<0||axisTap.y<0),down:joy.y>.5||keyboard&&(y>0||axisTap.y>0),jump:taps.jump||keys.has('KeyZ')||pointers.jump.size>0,crouch:taps.crouch||keyboard&&(y>0||axisTap.y>0)||joy.y>.5||pointers.crouch.size>0,interact:taps.interact,cockpit:taps.cockpit,
