@@ -219,6 +219,10 @@ function render(){
  }
  for(const id of ['jump','crouch'])$('#'+id).hidden=!game.pilot;
  $('#cockpit').textContent=game.pilot?'Embarquer · E':'Sortir · E';
+ const cockpitHint=$('#cockpit-hint'),canBoard=!game.pilot||Math.hypot(game.pilot.x-(world.x+21),game.pilot.y-(world.y+1))<=35;
+ cockpitHint.hidden=!started||game.ended||!game.landed||game.carrying||game.respawnRemaining>0||!canBoard;
+ cockpitHint.textContent=game.pilot?'E · Embarquer':'E · Sortir';cockpitHint.style.left=((world.x+21)/840*100)+'%';cockpitHint.style.top=((heliY+game.skyHeight-5)/(262+game.skyHeight)*100)+'%';
+
  ctx.restore();
  renderMagnifier(world);
  const placement=game.placementGuide(),guide=$('#placement-guide');guide.hidden=!placement||!started;guide.textContent=placement?.text||'';guide.classList.toggle('ok',Boolean(placement?.ok));
